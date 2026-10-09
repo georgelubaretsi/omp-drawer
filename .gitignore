@@ -1,0 +1,8 @@
+.direnv/
+node_modules/
+result
+.DS_Store
+
+# Upstream git clone and sync staging, refreshed by tools/sync-references.ts
+/reference/tern-sdk/
+/reference/.staging-*/

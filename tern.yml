@@ -1,0 +1,204 @@
+# selene standard library for Tern plugins: Luau plus the `tern` global, transcribed from
+# `declare tern` in reference/tern-installed/tern.d.luau (the plugin API of the installed Tern;
+# not in the public repo: fetch it with `bun tools/sync-references.ts tern`).
+# Recheck it when a refresh changes that file. Argument types are checked where the declaration
+# has one fixed signature; overloaded and variadic members take `...`.
+---
+base: luau
+name: tern
+globals:
+  tern.carly.export:
+    args: [{ type: string }, { type: table }, { type: function }]
+  tern.carly.context:
+    args: [{ type: function }]
+  tern.carly.schedule:
+    args: [{ type: table }]
+  tern.carly.tasks:
+    args: []
+  tern.carly.cancel:
+    args: [{ type: number }]
+  tern.carly.on_canvas:
+    args: [{ type: function }]
+
+  tern.context:
+    property: read-only
+  tern.plugin.id:
+    property: read-only
+  tern.plugin.name:
+    property: read-only
+  tern.plugin.dir:
+    property: read-only
+  tern.plugin.data:
+    property: read-only
+  tern.runtime.os:
+    property: read-only
+  tern.runtime.jit:
+    property: read-only
+
+  tern.log.debug:
+    args: [{ type: "..." }]
+  tern.log.info:
+    args: [{ type: "..." }]
+  tern.log.warn:
+    args: [{ type: "..." }]
+  tern.log.error:
+    args: [{ type: "..." }]
+
+  tern.json.encode:
+    args: [{ type: any }, { type: bool, required: false }]
+  tern.json.decode:
+    args: [{ type: string }]
+  tern.json.array:
+    args: [{ type: table, required: false }]
+  tern.json.null:
+    property: read-only
+
+  tern.base64.encode:
+    args: [{ type: string }, { type: table, required: false }]
+  tern.base64.decode:
+    args: [{ type: string }]
+
+  tern.now:
+    args: []
+  tern.getenv:
+    args: [{ type: string }]
+  tern.timer:
+    args: [{ type: number }, { type: function }]
+  tern.sleep:
+    args: [{ type: number }]
+
+  tern.kv.get:
+    args: [{ type: string }]
+  tern.kv.set:
+    args: [{ type: string }, { type: any }]
+
+  tern.secrets.get:
+    args: [{ type: string }]
+  tern.secrets.set:
+    args: [{ type: string }, { type: any }]
+
+  tern.fs.read:
+    args: [{ type: string }, { type: number, required: false }]
+  tern.fs.write:
+    args: [{ type: string }, { type: string }]
+  tern.fs.list:
+    args: [{ type: string }]
+  tern.fs.exists:
+    args: [{ type: string }]
+  tern.fs.mkdir:
+    args: [{ type: string }]
+  tern.fs.remove:
+    args: [{ type: string }]
+
+  tern.process.run:
+    args: [{ type: table }, { type: "..." }]
+  tern.fetch:
+    args: [{ type: string }, { type: "..." }]
+
+  tern.ui.span:
+    args: [{ type: string }, { type: string, required: false }]
+  tern.ui.link:
+    args: [{ type: string }, { type: string }, { type: string, required: false }]
+  tern.ui.path:
+    args: [{ type: string }, { type: string, required: false }]
+  tern.ui.text:
+    args: [{ type: any }]
+  tern.ui.col:
+    args: [{ type: table }]
+  tern.ui.lines:
+    args: [{ type: table }]
+  tern.ui.row:
+    args: [{ type: table }]
+  tern.ui.card:
+    args: [{ type: any }, { type: table }]
+  tern.ui.section:
+    args: [{ type: any }, { type: table }]
+  tern.ui.rule:
+    args: [{ type: any }]
+  tern.ui.badge:
+    args: [{ type: string }, { type: string }]
+  tern.ui.kv:
+    args: [{ type: table }]
+  tern.ui.table:
+    args: [{ type: table }, { type: table }]
+  tern.ui.meter_cell:
+    args: [{ type: number }, { type: table, required: false }]
+  tern.ui.meter_parts_cell:
+    args: [{ type: table }]
+  tern.ui.tree:
+    args: [{ type: table }]
+  tern.ui.list:
+    args: [{ type: table }]
+  tern.ui.code:
+    args: [{ type: string }, { type: string, required: false }, { type: number, required: false }]
+  tern.ui.diff:
+    args: [{ type: string }, { type: string, required: false }]
+  tern.ui.md:
+    args: [{ type: string }]
+  tern.ui.meter:
+    args: [{ type: number }, { type: any }]
+  tern.ui.progress:
+    args: [{ type: any }, { type: any }]
+  tern.ui.bars:
+    args: [{ type: table }]
+  tern.ui.spark:
+    args: [{ type: table }]
+  tern.ui.ansi:
+    args: [{ type: string }]
+  tern.ui.diagnostic:
+    args: [{ type: table }, { type: string, required: false }]
+  tern.ui.test_summary:
+    args: [{ type: number }, { type: number }, { type: number }, { type: string, required: false }]
+  tern.ui.overflow:
+    args: [{ type: number }]
+  tern.ui.node:
+    args: [{ type: string }, { type: table, required: false }, { type: table, required: false }]
+  tern.ui.el:
+    args: [{ type: string }, { type: table, required: false }, { type: table, required: false }]
+
+  tern.parse.columns:
+    args: [{ type: table }]
+  tern.parse.packed:
+    args: [{ type: table }]
+  tern.parse.json_tree:
+    args: [{ type: string }]
+  tern.parse.location:
+    args: [{ type: string }]
+  tern.parse.size:
+    args: [{ type: string }]
+
+  tern.block.define:
+    args: [{ type: string }, { type: table }]
+  tern.lens.define:
+    args: [{ type: string }, { type: table }]
+
+  tern.pane.write:
+    args: [{ type: number }, { type: string }]
+  tern.pane.list:
+    args: []
+
+  tern.on:
+    args: [{ type: string }, { type: function }]
+  tern.command:
+    args: [{ type: table }]
+  tern.bind:
+    args: [{ type: string }, { type: any }]
+  tern.override:
+    args: [{ type: string }, { type: function }]
+
+  tern.route.open:
+    args: [{ type: function }]
+  tern.route.link:
+    args: [{ type: function }]
+
+  tern.chrome.tab_title:
+    args: [{ type: function }]
+  tern.chrome.window_title:
+    args: [{ type: function }]
+  tern.chrome.status:
+    args: [{ type: function }]
+  tern.chrome.refresh:
+    args: []
+
+  tern.css:
+    args: [{ type: string }, { type: string }]

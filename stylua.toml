@@ -1,0 +1,7 @@
+# StyLua (Luau formatter), matching the existing tab style.
+syntax = "Luau"
+indent_type = "Tabs"
+indent_width = 4
+column_width = 120
+quote_style = "AutoPreferDouble"
+call_parentheses = "Always"

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Skills SKILL.md frontmatter",
+  "description": "Transcribed from https://agentskills.io/specification (Frontmatter). The field set is closed as in the reference validator skills-ref (ALLOWED_FIELDS in skills-ref/src/skills_ref/validator.py, github.com/agentskills/agentskills). That name equals the skill directory is checked in tools/build.ts.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "1-64 characters; lowercase letters, digits and hyphens; no leading, trailing or consecutive hyphens.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "description": {
+      "description": "1-1024 characters, not only whitespace.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "\\S"
+    },
+    "license": {
+      "description": "License name or reference to a bundled license file.",
+      "type": "string"
+    },
+    "compatibility": {
+      "description": "1-500 characters.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "metadata": {
+      "description": "A map from string keys to string values.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "allowed-tools": {
+      "description": "Space-separated string of pre-approved tools (experimental).",
+      "type": "string"
+    }
+  },
+  "required": ["name", "description"],
+  "additionalProperties": false
+}

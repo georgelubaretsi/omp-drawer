@@ -1,0 +1,6 @@
+schema = 1
+id = "omp-bridge"
+name = "omp bridge"
+version = "0.1.0"
+description = "Runs Lua from omp's tern_lua tool in the window holding the caller's pane, with cx (the API Carly's lua tool has)."
+window = "window.luau"

@@ -1,0 +1,4 @@
+[tools]
+# The macOS archives and, on Linux, the static (musl) ones, which run on every distribution,
+# NixOS included.
+"github:Microck/kagi-cli" = { version = "0.22.0", filter_bins = "kagi", matching_regex = '-(apple-darwin|unknown-linux-musl)\.tar\.gz$' }

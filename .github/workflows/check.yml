@@ -1,0 +1,31 @@
+# The public omp-drawer repository's checks, for its pull requests and pushes: everything
+# `bun run check` covers, in the dev shell of flake.nix. In the private workspace this file sits
+# at plugins/.github/workflows/, where GitHub never runs it: it reads workflows only from
+# .github/workflows/ at a repository's root.
+# Third-party actions are pinned by commit, with the release as a comment.
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # Every run step runs in the dev shell.
+        shell: nix develop -c bash -euo pipefail {0}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: bun run check
+        run: bun run check

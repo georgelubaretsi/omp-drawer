@@ -1,0 +1,29 @@
+{
+  "name": "omp-drawer-agent-variants",
+  "version": "0.1.0",
+  "description": "Create temporary project-scoped agent variants with explicit model routing",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgelubaretsi/omp-drawer.git",
+    "directory": "plugins/agent-variants"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@oh-my-pi/pi-coding-agent": "18.0.6",
+    "@types/bun": "^1.2.22",
+    "typescript": "^5.9.3"
+  },
+  "omp": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}

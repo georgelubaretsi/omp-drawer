@@ -1,0 +1,88 @@
+{
+  "name": "omp-drawer",
+  "owner": {
+    "name": "George Lubaretsi",
+    "email": "george@lubaretsi.com"
+  },
+  "metadata": {
+    "description": "Plugins for omp, Claude Code, Codex and the Tern terminal"
+  },
+  "plugins": [
+    {
+      "name": "agent-variants",
+      "source": "./plugins/agent-variants",
+      "version": "0.1.0",
+      "description": "Create temporary project-scoped agent variants with explicit model routing",
+      "author": {
+        "name": "George Lubaretsi",
+        "email": "george@lubaretsi.com"
+      },
+      "homepage": "https://github.com/georgelubaretsi/omp-drawer/tree/main/plugins/agent-variants",
+      "repository": "https://github.com/georgelubaretsi/omp-drawer",
+      "license": "MIT",
+      "keywords": [
+        "agents",
+        "models",
+        "omp"
+      ],
+      "category": "development"
+    },
+    {
+      "name": "kagi",
+      "source": "./plugins/kagi",
+      "version": "0.1.0",
+      "description": "Kagi web search for coding agents, with only the tools you choose",
+      "author": {
+        "name": "George Lubaretsi",
+        "email": "george@lubaretsi.com"
+      },
+      "homepage": "https://github.com/georgelubaretsi/omp-drawer/tree/main/plugins/kagi",
+      "repository": "https://github.com/georgelubaretsi/omp-drawer",
+      "license": "MIT",
+      "keywords": [
+        "kagi",
+        "search",
+        "mcp"
+      ],
+      "category": "search"
+    },
+    {
+      "name": "tern",
+      "source": "./plugins/tern",
+      "version": "0.1.0",
+      "description": "Use Tern from omp: a tern_lua tool running Lua with Tern's window API (agents, layout, blocks, git, settings) and a tern skill",
+      "author": {
+        "name": "George Lubaretsi",
+        "email": "george@lubaretsi.com"
+      },
+      "homepage": "https://github.com/georgelubaretsi/omp-drawer/tree/main/plugins/tern",
+      "repository": "https://github.com/georgelubaretsi/omp-drawer",
+      "license": "MIT",
+      "keywords": [
+        "tern",
+        "terminal",
+        "omp"
+      ],
+      "category": "development"
+    },
+    {
+      "name": "workflow",
+      "source": "./plugins/workflow",
+      "version": "0.1.0",
+      "description": "How to work: weigh problems in proportion, think before building, fix corrections as classes, failure classes to check, project tooling, changelogs and when to ask",
+      "author": {
+        "name": "George Lubaretsi",
+        "email": "george@lubaretsi.com"
+      },
+      "homepage": "https://github.com/georgelubaretsi/omp-drawer/tree/main/plugins/workflow",
+      "repository": "https://github.com/georgelubaretsi/omp-drawer",
+      "license": "MIT",
+      "keywords": [
+        "workflow",
+        "review",
+        "omp"
+      ],
+      "category": "productivity"
+    }
+  ]
+}

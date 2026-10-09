@@ -1,0 +1,13 @@
+{
+  "name": "omp-drawer-kagi",
+  "version": "0.1.0",
+  "description": "Kagi web search for coding agents, with only the tools you choose",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgelubaretsi/omp-drawer.git",
+    "directory": "plugins/kagi"
+  },
+  "omp": {}
+}

@@ -1,0 +1,5 @@
+# Generated from mise.lock by tools/build; do not edit.
+kagi	0.22.0	macos-arm64	https://github.com/Microck/kagi-cli/releases/download/v0.22.0/kagi-v0.22.0-aarch64-apple-darwin.tar.gz	e80f95ac2862f962b1b69c556f1c57ef9dd741b9b6ab519f43d231558fce137c
+kagi	0.22.0	macos-x64	https://github.com/Microck/kagi-cli/releases/download/v0.22.0/kagi-v0.22.0-x86_64-apple-darwin.tar.gz	67be3bf312f4b6a40d4c8aa14246dfb1263c0000b88b7d380b632c0fd47576ec
+kagi	0.22.0	linux-x64	https://github.com/Microck/kagi-cli/releases/download/v0.22.0/kagi-v0.22.0-x86_64-unknown-linux-musl.tar.gz	be89fed64ee1a5648a6ae6f5ad562c3918243c41593dfdc36f40a5a4f4374dbd
+kagi	0.22.0	linux-arm64	https://github.com/Microck/kagi-cli/releases/download/v0.22.0/kagi-v0.22.0-aarch64-unknown-linux-musl.tar.gz	aba4b3b8839fa9e3485d0a25859a6bc8cb6856669957baf7a0f2d1456bdd8434

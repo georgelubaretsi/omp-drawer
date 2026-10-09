@@ -1,0 +1,26 @@
+{
+  "name": "omp-drawer-tern",
+  "version": "0.1.0",
+  "description": "Use Tern from omp: a tern_lua tool running Lua with Tern's window API (agents, layout, blocks, git, settings) and a tern skill",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgelubaretsi/omp-drawer.git",
+    "directory": "plugins/tern"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@oh-my-pi/pi-coding-agent": "18.0.6",
+    "@types/bun": "^1.2.22",
+    "typescript": "^5.9.3"
+  },
+  "omp": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}

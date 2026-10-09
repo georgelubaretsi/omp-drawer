@@ -1,0 +1,13 @@
+{
+  "name": "omp-drawer-workflow",
+  "version": "0.1.0",
+  "description": "How to work: weigh problems in proportion, think before building, fix corrections as classes, failure classes to check, project tooling, changelogs and when to ask",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgelubaretsi/omp-drawer.git",
+    "directory": "plugins/workflow"
+  },
+  "omp": {}
+}

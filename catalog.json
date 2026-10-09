@@ -1,0 +1,40 @@
+{
+  "name": "omp-drawer",
+  "owner": {
+    "name": "George Lubaretsi",
+    "email": "george@lubaretsi.com"
+  },
+  "description": "Plugins for omp, Claude Code, Codex and the Tern terminal",
+  "plugins": [
+    {
+      "name": "agent-variants",
+      "category": "development",
+      "hosts": [
+        "omp"
+      ]
+    },
+    {
+      "name": "kagi",
+      "category": "search",
+      "hosts": [
+        "omp",
+        "claude",
+        "codex"
+      ]
+    },
+    {
+      "name": "tern",
+      "category": "development",
+      "hosts": [
+        "omp"
+      ]
+    },
+    {
+      "name": "workflow",
+      "category": "productivity",
+      "hosts": [
+        "omp"
+      ]
+    }
+  ]
+}

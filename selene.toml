@@ -1,0 +1,3 @@
+# selene (Luau linter): Luau plus the `tern` global (tern.yml).
+std = "tern"
+exclude = ["reference/**", "node_modules/**"]

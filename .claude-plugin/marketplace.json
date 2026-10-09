@@ -1,0 +1,30 @@
+{
+  "name": "omp-drawer",
+  "owner": {
+    "name": "George Lubaretsi",
+    "email": "george@lubaretsi.com"
+  },
+  "metadata": {
+    "description": "Plugins for omp, Claude Code, Codex and the Tern terminal"
+  },
+  "plugins": [
+    {
+      "name": "kagi",
+      "source": "./plugins/kagi",
+      "description": "Kagi web search for coding agents, with only the tools you choose",
+      "author": {
+        "name": "George Lubaretsi",
+        "email": "george@lubaretsi.com"
+      },
+      "homepage": "https://github.com/georgelubaretsi/omp-drawer/tree/main/plugins/kagi",
+      "repository": "https://github.com/georgelubaretsi/omp-drawer",
+      "license": "MIT",
+      "keywords": [
+        "kagi",
+        "search",
+        "mcp"
+      ],
+      "category": "search"
+    }
+  ]
+}

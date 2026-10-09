@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-variants",
+  "version": "0.1.0",
+  "description": "Create temporary project-scoped agent variants with explicit model routing",
+  "author": {
+    "name": "George Lubaretsi",
+    "email": "george@lubaretsi.com"
+  },
+  "homepage": "https://github.com/georgelubaretsi/omp-drawer/tree/main/plugins/agent-variants",
+  "repository": "https://github.com/georgelubaretsi/omp-drawer",
+  "license": "MIT",
+  "keywords": [
+    "agents",
+    "models",
+    "omp"
+  ]
+}

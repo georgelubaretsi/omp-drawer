@@ -1,0 +1,81 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "promise", "node"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "options": {
+    "typeAware": true,
+    "denyWarnings": true,
+    "reportUnusedDisableDirectives": "error"
+  },
+  "rules": {
+    "eslint/max-lines": ["error", { "max": 300, "skipBlankLines": true, "skipComments": true }],
+    "eslint/max-lines-per-function": ["error", { "max": 60, "skipBlankLines": true, "skipComments": true }],
+    "eslint/complexity": ["error", { "max": 12 }],
+    "eslint/max-depth": ["error", { "max": 4 }],
+    "eslint/max-params": ["error", { "max": 4 }],
+    "eslint/max-nested-callbacks": ["error", { "max": 3 }],
+
+    "eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_"
+      }
+    ],
+    "eslint/eqeqeq": ["error", "always", { "null": "ignore" }],
+    "eslint/array-callback-return": "error",
+    "eslint/no-fallthrough": "error",
+    "eslint/no-case-declarations": "error",
+    "eslint/no-self-compare": "error",
+    "eslint/no-loop-func": "error",
+    "eslint/no-redeclare": "error",
+    "eslint/no-prototype-builtins": "error",
+    "eslint/no-promise-executor-return": "error",
+    "eslint/no-constructor-return": "error",
+    "eslint/no-throw-literal": "error",
+    "eslint/prefer-promise-reject-errors": "error",
+    "eslint/prefer-const": "error",
+    "eslint/no-var": "error",
+    "eslint/radix": "error",
+    "unicorn/no-instanceof-array": "error",
+    "unicorn/no-useless-promise-resolve-reject": "error",
+    "unicorn/no-new-buffer": "error",
+    "unicorn/prefer-type-error": "error",
+    "typescript/ban-ts-comment": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "error",
+
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/no-unnecessary-type-assertion": "error",
+    "typescript/only-throw-error": "error",
+    "typescript/prefer-promise-reject-errors": "error",
+    "typescript/return-await": ["error", "in-try-catch"],
+    "typescript/switch-exhaustiveness-check": "error",
+    "typescript/restrict-plus-operands": "error",
+    "typescript/no-deprecated": "error",
+    "typescript/no-unsafe-argument": "error",
+    "typescript/no-unsafe-assignment": "error",
+    "typescript/no-unsafe-call": "error",
+    "typescript/no-unsafe-member-access": "error",
+    "typescript/no-unsafe-return": "error",
+    "typescript/no-mixed-enums": "error",
+    "typescript/require-array-sort-compare": ["error", { "ignoreStringArrays": true }]
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/test/**/*.ts"],
+      "rules": {
+        "eslint/max-lines": ["error", { "max": 400, "skipBlankLines": true, "skipComments": true }],
+        "eslint/max-lines-per-function": ["error", { "max": 120, "skipBlankLines": true, "skipComments": true }]
+      }
+    }
+  ],
+  "ignorePatterns": ["reference/**", "node_modules/**", "**/node_modules/**"]
+}
