@@ -21,8 +21,7 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Rule `ask-for-decisions` (in full, main agent only): don't ask what you can find out; explain
   and discuss in plain text and use the ask tool only for the final pick, each option saying what
   you get and what you give up; keep discussing in plain text when the user cancels the ask tool
-  and writes instead; take a clear safe default and say so, continue agreed work without asking;
-  record each answer where it belongs, the user's words quoted.
+  and writes instead; take a clear safe default and say so, continue agreed work without asking.
 - Rule `project-tooling`: use the project's own dev shell, scripts, lockfiles and CI steps; write
   AGENTS.md as a README for agents (fixed sections, short bullets, detail in `docs/`, 2–5 code
   review rules each with a safe path, the threat model in `docs/threat-model.md`).

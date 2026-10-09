@@ -10,4 +10,3 @@ alwaysApply: true
 - Options in plain words: what you get, what you give up.
 - If the user cancels the ask tool and writes instead, keep discussing in plain text.
 - Clear safe default: take it and say so. Agreed work: just continue.
-- Record each answer where it belongs as soon as it comes, the user's words quoted.

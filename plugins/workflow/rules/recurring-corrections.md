@@ -22,6 +22,3 @@ Stop and redesign when:
 Write the cause in a few lines and propose a different design or a narrower scope. The main
 agent asks the user before continuing; a subagent stops and reports it to the agent that
 started it.
-
-A lesson specific to one project goes in that project's AGENTS.md. Only a lesson that has
-shown up in more than one project becomes part of a failure class.
