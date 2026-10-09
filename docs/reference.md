@@ -16,7 +16,9 @@ For Tern work, fetch the Tern material if it is missing, check `reference/` befo
 cite the file. Refresh the Tern source first when the Tern section of `SYNCED.md` is older than
 7 days or its Tern version differs from `tern --version`. When a refresh changes
 `tern-installed/`, recheck `plugins/tern` and `tern.yml` (transcribed from `tern.d.luau` for
-selene).
+selene). After any Tern update, recheck the look in Tern's Reader chat style:
+`plugins/tern/ghostty-look/omp-ghostty.css` relies on Tern's inner classes, which can change
+(`tern-docs/styles/index.md`, "Avoid inner classes").
 
 ## Contents
 
@@ -38,6 +40,7 @@ selene).
 ## plugins/tern
 
 `plugins/tern` holds the `tern_lua` tool and the `tern` skill; its Tern half `tern-plugin/` is
-linked with `tern plugin link`. A throttled background Tern (macOS App Nap) trips Tern's 50 ms
+linked with `tern plugin link`, as is the look `ghostty-look/` (Tern plugin `omp-ghostty`, a
+style sheet only). A throttled background Tern (macOS App Nap) trips Tern's 50 ms
 plugin budget, so the bridge needs App Nap off:
 `defaults write so.stencil.tern NSAppSleepDisabled -bool YES`.

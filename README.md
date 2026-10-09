@@ -29,9 +29,17 @@ Codex:
     codex plugin marketplace add georgelubaretsi/omp-drawer
     codex plugin add kagi@omp-drawer
 
-The tern plugin also has a Tern half, installed into Tern:
+The tern plugin also holds two Tern plugins, installed into Tern. `omp-bridge` is the Tern half
+of `tern_lua`:
 
     tern plugin install github.com/georgelubaretsi/omp-drawer/plugins/tern/tern-plugin
+
+`omp-ghostty` is a look: a style sheet that draws omp's chat in Tern the way omp looks in
+Ghostty, with one box per tool call, thoughts left open, bash as `$ command`, diffs with one
+line-number column, your messages as full-width bars, and text in the colours of omp's
+dark-arctic theme. It targets Tern's Reader chat style and styles nothing else:
+
+    tern plugin install github.com/georgelubaretsi/omp-drawer/plugins/tern/ghostty-look
 
 ## Contributing
 

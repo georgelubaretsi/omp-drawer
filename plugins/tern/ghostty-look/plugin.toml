@@ -1,0 +1,7 @@
+schema = 1
+id = "omp-ghostty"
+name = "omp, Ghostty style"
+version = "0.1.0"
+description = "Draws omp's native surfaces in Tern the way omp looks in Ghostty."
+window = "window.luau"
+styles = ["omp-ghostty.css"]

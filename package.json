@@ -9,8 +9,8 @@
   "scripts": {
     "build": "bun tools/build.ts",
     "lint": "oxlint",
-    "fmt": "oxfmt '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}'",
-    "fmt:check": "oxfmt --check '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}'",
+    "fmt": "oxfmt '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,css}'",
+    "fmt:check": "oxfmt --check '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,css}'",
     "typecheck": "tsc -p . && bun run --filter './plugins/*' typecheck",
     "test": "bun test tools && bun run --filter './plugins/*' test",
     "check": "bun tools/build.ts --check && bun run lint && bun run fmt:check && bun run typecheck && bun run test"

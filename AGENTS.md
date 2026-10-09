@@ -8,7 +8,8 @@ for any user, with no project, client, host or person names and no personal path
 - `plugins/<name>/`: one installable package, with its `plugin.json` and `CHANGELOG.md`.
 - `plugins/kagi/`: Kagi web search: the pinned kagi CLI's MCP server (`scripts/mcp.sh`, its
   default `KAGI_MCP_TOOLS`), the `kagi` skill and the `web-search` rule.
-- `plugins/tern/`: the `tern_lua` tool and `tern` skill; `tern-plugin/` is its Tern half.
+- `plugins/tern/`: the `tern_lua` tool and `tern` skill; `tern-plugin/` is its Tern half
+  (`omp-bridge`), `ghostty-look/` the `omp-ghostty` Tern plugin (a style sheet, the look).
 - `plugins/workflow/`: rules and the `failure-classes` skill on how to work, for any project.
 - `catalog.json`: the plugin list and hosts; the build generates the manifests from it.
 - `CHANGELOG.md`: this repo's own changes (tooling, catalog, docs, CI), in monthly sections.

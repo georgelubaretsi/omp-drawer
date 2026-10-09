@@ -1,0 +1,327 @@
+/* Every rule is scoped to omp's surfaces ([data-surface^='omp.']), not other plugins' blocks. */
+
+/* One box per tool call on Reader: the command and its output share one well, as in
+   Ghostty, instead of a bare head row over a separate output well. Filled with omp's
+   own tool backgrounds (toolSuccessBg / toolPendingBg / toolErrorBg), which Tern
+   exposes as 60% tints; made opaque so they match Ghostty exactly. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool.card:not([data-role="omp.tool.wait"]):not([data-role="omp.tool.eval"]) {
+	padding: 8px 12px;
+	border-radius: 10px;
+	background: rgb(from var(--sf-tint-success, var(--code-bg)) r g b / 1);
+	box-shadow: inset 0 0 0 1px var(--og-grid); /* 3:1 edge: the fill alone is only 1.06:1 */
+}
+
+.sf-chat-reader[data-surface^="omp."]
+	.sf-tool.card:is(.st-running, .st-pending):not([data-role="omp.tool.wait"]):not([data-role="omp.tool.eval"]) {
+	background: rgb(from var(--sf-tint-pending, var(--code-bg)) r g b / 1);
+}
+
+.sf-chat-reader[data-surface^="omp."]
+	.sf-tool.card.st-error:not([data-role="omp.tool.wait"]):not([data-role="omp.tool.eval"]) {
+	background: rgb(from var(--sf-tint-error, var(--code-bg)) r g b / 1);
+}
+
+.sf-chat-reader[data-surface^="omp."]
+	.sf-tool.card:not([data-role="omp.tool.wait"]):not([data-role="omp.tool.eval"])
+	> .sf-tool-body {
+	padding-left: 0;
+}
+
+.sf-chat-reader[data-surface^="omp."]
+	.sf-tool.card:not([data-role="omp.tool.wait"]):not([data-role="omp.tool.eval"])
+	> .sf-tool-body
+	> :is(.sf-code, .sf-diff, .sf-ansi) {
+	padding: 8px 0 0;
+	border-radius: 0;
+	background: none;
+	box-shadow: inset 0 1px 0 var(--l2);
+}
+
+/* Thoughts never fold, as in Ghostty. The text is in the DOM even when folded; Tern
+   only hides it. The "Thought for Ns" toggle would do nothing, so it goes too. A
+   chain of thoughts hides its followers, and any message holding only followers,
+   while folded; those stay shown. */
+.sf-chat-reader[data-surface^="omp."] .sf-section[data-role^="omp.thinking"] > .sf-section-head {
+	display: none;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-section[data-role^="omp.thinking"].collapsed > .sf-section-body {
+	display: flex;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-section.sf-thought-more.collapsed {
+	display: flex;
+}
+
+.sf-chat-reader[data-surface^="omp."].sf-main > .sf-thought-gone {
+	display: flex;
+}
+
+/* Text in the colours omp shows in Ghostty. Tern raises omp's palette text to 4.5:1
+   contrast and colours body text with its own theme, so these are pinned: body text
+   in Ghostty's default foreground (omp's text token is empty, so it follows the
+   terminal), quiet text in omp dark-arctic's toolOutput/thinkingText, code in mdCode. */
+.tn-pane.agent {
+	--og-text: #d8dee9; /* omp dark-arctic's snowStorm0: 10.4:1 on the page, not pure white */
+	--og-quiet: #8b93a3; /* omp's #4c566a lifted to 4.5:1 on the page and in boxes */
+	--og-code: #b48ead;
+	--og-grid: #6c7587; /* table lines: 3:1 on the page, quieter than the text in the cells */
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md,
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md li li {
+	color: var(--og-text);
+}
+
+/* inline code: coloured text at the text's size, no chip */
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md :not(pre) > code {
+	padding: 0;
+	background: none;
+	font-size: inherit;
+	line-height: inherit;
+	color: var(--og-code);
+}
+
+/* thoughts and command output recede; command output is a mini terminal that takes
+   its default foreground from --tv-fg */
+.sf-chat-reader[data-surface^="omp."] .sf-section[data-role^="omp.thinking"] > .sf-section-body {
+	color: var(--og-quiet);
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-ansi {
+	--tv-fg: var(--og-quiet);
+}
+
+/* Tables: a full grid of single lines in the text colour, as omp draws them with
+   box lines. Tern ignores border-collapse, so neighbouring cells' borders would
+   stack into 2px lines: the table draws the top and left edges, each cell its
+   right and bottom. A row is two terminal rows tall, like omp's text row plus its
+   ├──┤ separator, and the text sits one cell in from each line. */
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md table {
+	border-top: 1px solid var(--og-grid);
+	border-left: 1px solid var(--og-grid);
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md :is(th, td) {
+	padding: calc((var(--sf-lh) - 1px) / 2) var(--sf-cw);
+	border: 0;
+	border-right: 1px solid var(--og-grid);
+	border-bottom: 1px solid var(--og-grid);
+	font-size: inherit;
+	font-weight: 400;
+	color: var(--og-text);
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md tr:last-child td {
+	border-bottom: 1px solid var(--og-grid);
+}
+
+/* Commands show in full, as in Ghostty. Tern cuts a folded tool's command to one
+   line and wraps it only when unfolded; omp folds every tool while output
+   expansion is off. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool .sf-tool-target.command {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+/* Bash reads `$ command`, as in Ghostty: no terminal icon, no "Bash" title, a dim
+   prompt sign before the command. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool[data-role="omp.tool.bash"] > .sf-tool-head > .sf-tool-ic,
+.sf-chat-reader[data-surface^="omp."] .sf-tool[data-role="omp.tool.bash"] > .sf-tool-head .sf-tool-title {
+	display: none;
+}
+
+.sf-chat-reader[data-surface^="omp."]
+	.sf-tool[data-role="omp.tool.bash"]
+	> .sf-tool-head
+	.sf-tool-target.command::before {
+	content: "$ ";
+	color: var(--og-quiet);
+}
+
+/* Replies as dense as Ghostty: the terminal's font size and row height (Reader
+   uses 14px at 1.65), a blank row between paragraphs and lists, none between
+   list items, and a line like "Checks:" sitting right on its list. */
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md {
+	gap: var(--sf-lh);
+	font-size: var(--sf-fs);
+	line-height: 18px; /* 1.4 × 13px: prose spacing, between the terminal's 16px and Reader's 23px */
+	letter-spacing: 0;
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md p {
+	margin: 0 0 var(--sf-lh);
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md :is(ul, ol) {
+	margin: 0 0 var(--sf-lh);
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md p + :is(ul, ol) {
+	margin-top: calc(0px - var(--sf-lh));
+}
+
+/* each section is its own markdown block; the gap between blocks is the blank row */
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md > :last-child {
+	margin-bottom: 0;
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md li,
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md li:last-child {
+	margin: 0;
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md li :is(ul, ol) {
+	margin: 0;
+}
+
+/* lists marked `- ` in omp's bullet colour, wrapped lines hanging under the text */
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md ul:not(.tasks) {
+	list-style: none;
+	padding-left: 0;
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md ul:not(.tasks) > li {
+	position: relative;
+	padding-left: calc(2 * var(--sf-cw));
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md ul:not(.tasks) > li::before {
+	content: "-";
+	position: absolute;
+	left: 0;
+	top: 0;
+	color: var(--sf-p-mdListBullet, var(--t4));
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md ol {
+	padding-left: calc(3 * var(--sf-cw));
+}
+
+.sf-chat-reader[data-surface^="omp."] [data-role^="omp.assistant"] > .sf-md .md ol > li {
+	padding-left: 0;
+}
+
+/* Your messages as Ghostty shows them: a full-width bar in omp's userMessageBg
+   (#1f2430 in dark-arctic), the text at the left with a blank row above and below,
+   in the terminal font and size, instead of a bubble on the right. */
+.sf-chat-reader[data-surface^="omp."] .sf-card[data-role="omp.user"] {
+	align-items: stretch;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-card[data-role="omp.user"] > .sf-card-body {
+	max-width: none;
+	padding: var(--sf-lh) var(--sf-cw);
+	border-radius: 0;
+	background: rgb(from var(--sf-tint-user, var(--l1)) r g b / 1);
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-card[data-role="omp.user"] .sf-md .md {
+	font-size: var(--sf-fs);
+	line-height: var(--sf-lh);
+	letter-spacing: 0;
+	color: var(--og-text);
+}
+
+/* Thoughts as plain dim text at the terminal's size and row height: not italic,
+   not indented. */
+.sf-chat-reader[data-surface^="omp."] .sf-section[data-role^="omp.thinking"] > .sf-section-body {
+	margin: 0;
+	padding: 0;
+	font-style: normal;
+	font-size: var(--sf-fs);
+	line-height: var(--sf-lh);
+	letter-spacing: 0;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-section[data-role^="omp.thinking"] > .sf-section-body .md p {
+	margin: 0;
+}
+
+/* Diffs with one line-number column, as in Ghostty: a removed line shows its old
+   number, an added or unchanged line its new one. Each row holds two number cells
+   (old, new), one of them empty on changed lines. The coloured edge moves from the
+   first number cell to the row, so it stays when that cell is hidden. */
+.sf-chat-reader[data-surface^="omp."] .sf-diff .sf-dl.ctx > .sf-dg:first-child,
+.sf-chat-reader[data-surface^="omp."] .sf-diff .sf-dl.add > .sf-dg:first-child,
+.sf-chat-reader[data-surface^="omp."] .sf-diff .sf-dl.del > .sf-dg:nth-child(2) {
+	display: none;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.add {
+	box-shadow: inset 2px 0 0 var(--sf-p-toolDiffAdded, var(--ok));
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.del {
+	box-shadow: inset 2px 0 0 var(--sf-p-toolDiffRemoved, var(--bad));
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl:is(.add, .del) > .sf-dg:first-child {
+	box-shadow: none;
+}
+
+/* The sign sits on the line number (-48, +48) with a thin rule between the numbers
+   and the text, as in Ghostty, instead of a separate +/- column. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl > .sf-dm {
+	display: none;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl > .sf-dg {
+	width: calc(var(--sf-gw) + var(--sf-cw) + 14px);
+	box-shadow: inset -1px 0 0 var(--og-grid);
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl > .sf-dt {
+	padding-left: var(--sf-cw);
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.del > .sf-dg:first-child::before {
+	content: "-";
+	color: var(--sf-p-toolDiffRemoved, var(--bad));
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.add > .sf-dg:nth-child(2)::before {
+	content: "+";
+	color: var(--sf-p-toolDiffAdded, var(--ok));
+}
+
+/* Was/is as Ghostty shows them: the text itself is red or green, with no band
+   across the row; Tern's boxes behind the changed words stay. Red is lighter than
+   omp's #bf616a (3.6:1) so it reads at 5.8:1; green is omp's (7.3:1). The word
+   boxes are 22% fills, the strongest that keep the coloured word at 4.5:1. The
+   coloured edge on the row and the -/+ on the number stay. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl:is(.add, .del) {
+	background: none;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.del > .sf-dt,
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.del > .sf-dt * {
+	color: #e8868a;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.add > .sf-dt,
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.add > .sf-dt * {
+	color: #a3be8c;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.del .sf-em {
+	background: #423541;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.add .sf-em {
+	background: #3c4948;
+}
+
+/* What you type in the same face and size as everything else: Reader hard-codes
+   15px Geist for the composer, so the UI font setting doesn't reach it. The
+   placeholder loses its italic too. */
+.sf-chat-reader[data-surface^="omp."] .sf-col[data-role^="omp.editor"] .sf-editor {
+	--sf-lh: 18px;
+	font: var(--sf-fs) / 18px var(--tv-font, var(--mono));
+	font-style: normal;
+	letter-spacing: 0;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-col[data-role^="omp.editor"] .sf-editor * {
+	font-style: normal;
+}

@@ -27,4 +27,9 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `defaults write so.stencil.tern NSAppSleepDisabled -bool YES` and restart Tern.
 - Skill `tern`: how to work with Tern agents (separate from omp subagents), panes, blocks,
   layout and settings through the `tern` CLI and `tern_lua`, with common calls and rules.
+- Tern plugin `omp-ghostty` (folder `ghostty-look/`), a look: a style sheet that draws omp's
+  chat in Tern's Reader chat style the way omp looks in Ghostty: one box per tool call,
+  thoughts left open, bash as `$ command`, diffs with one line-number column, your messages as
+  full-width bars, denser replies and text in omp dark-arctic's colours. Install it with
+  `tern plugin install github.com/georgelubaretsi/omp-drawer/plugins/tern/ghostty-look`.
 - Supported host: omp.

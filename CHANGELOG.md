@@ -40,6 +40,10 @@ change in a new month moves them into a section for the month they were last cha
   texts (Apache-2.0 for the schemas, CC-BY-4.0 for the spec) and a `NOTICE.md` saying what came
   from where; `bun tools/sync-references.ts agent-plugins` fetches and writes them on every
   refresh.
+- `bun run fmt` and `bun run fmt:check` format CSS too, with oxfmt and the same settings as
+  TypeScript.
+- The README says how to install the tern plugin's `omp-ghostty` look in Tern, and
+  `docs/reference.md` says to recheck it after a Tern update.
 
 ### Changed
 
