@@ -1,1 +1,1 @@
--- omp-ghostty: the look is the style sheet in plugin.toml's styles; Tern requires an entry.
+-- omp-ghostty: the look is the style sheets in plugin.toml's styles; Tern requires an entry.

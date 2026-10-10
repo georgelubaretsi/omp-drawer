@@ -17,7 +17,7 @@ cite the file. Refresh the Tern source first when the Tern section of `SYNCED.md
 7 days or its Tern version differs from `tern --version`. When a refresh changes
 `tern-installed/`, recheck `plugins/tern` and `tern.yml` (transcribed from `tern.d.luau` for
 selene). After any Tern update, recheck the look in Tern's Reader chat style:
-`plugins/tern/ghostty-look/omp-ghostty.css` relies on Tern's inner classes, which can change
+the style sheets in `plugins/tern/ghostty-look/` rely on Tern's inner classes, which can change
 (`tern-docs/styles/index.md`, "Avoid inner classes").
 
 ## Contents

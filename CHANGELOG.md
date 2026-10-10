@@ -42,8 +42,8 @@ change in a new month moves them into a section for the month they were last cha
   refresh.
 - `bun run fmt` and `bun run fmt:check` format CSS too, with oxfmt and the same settings as
   TypeScript.
-- The README says how to install the tern plugin's `omp-ghostty` look in Tern, and
-  `docs/reference.md` says to recheck it after a Tern update.
+- The README says how to install the tern plugin's `omp-ghostty` look in Tern and that it needs
+  Tern 0.7.1 or later; `docs/reference.md` says to recheck its style sheets after a Tern update.
 
 ### Changed
 

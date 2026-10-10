@@ -1,0 +1,69 @@
+/* omp-ghostty, diffs. Every rule is scoped to omp's surfaces ([data-surface^='omp.']), not
+   other plugins' blocks; the --og-* colours are in text.css. */
+
+/* Diffs with one line-number column, as in Ghostty: Tern 0.7.1+ draws one number cell
+   per row (a removed line's old number, any other line's new one). The coloured edge
+   moves from the number cell to the row. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.add {
+	box-shadow: inset 2px 0 0 var(--sf-p-toolDiffAdded, var(--ok));
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.del {
+	box-shadow: inset 2px 0 0 var(--sf-p-toolDiffRemoved, var(--bad));
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl:is(.add, .del) > .sf-dg:first-child {
+	box-shadow: inset -1px 0 0 var(--og-grid);
+}
+
+/* The sign sits on the line number (-48, +48) with a thin rule between the numbers
+   and the text, as in Ghostty, instead of a separate +/- column. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl > .sf-dm {
+	display: none;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl > .sf-dg {
+	width: calc(var(--sf-gw) + var(--sf-cw) + 14px);
+	box-shadow: inset -1px 0 0 var(--og-grid);
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl > .sf-dt {
+	padding-left: var(--sf-cw);
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.del > .sf-dg:first-child::before {
+	content: "-";
+	color: var(--sf-p-toolDiffRemoved, var(--bad));
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.add > .sf-dg:first-child::before {
+	content: "+";
+	color: var(--sf-p-toolDiffAdded, var(--ok));
+}
+
+/* Was/is as Ghostty shows them: the text itself is red or green, with no band
+   across the row; Tern's boxes behind the changed words stay. Red is lighter than
+   omp's #bf616a (3.6:1) so it reads at 5.8:1; green is omp's (7.3:1). The word
+   boxes are 22% fills, the strongest that keep the coloured word at 4.5:1. The
+   coloured edge on the row and the -/+ on the number stay. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl:is(.add, .del) {
+	background: none;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.del > .sf-dt,
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.del > .sf-dt * {
+	color: #e8868a;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.add > .sf-dt,
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.add > .sf-dt * {
+	color: #a3be8c;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.del .sf-em {
+	background: #423541;
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-dl.add .sf-em {
+	background: #3c4948;
+}

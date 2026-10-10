@@ -1,0 +1,91 @@
+/* omp-ghostty, tool calls. Every rule is scoped to omp's surfaces ([data-surface^='omp.']), not
+   other plugins' blocks; the --og-* colours are in text.css. */
+
+/* One box per tool call on Reader: the command and its output share one well, as in
+   Ghostty, instead of a bare head row over a separate output well. Filled with omp's
+   own tool backgrounds (toolSuccessBg / toolPendingBg / toolErrorBg), which Tern
+   exposes as 60% tints; made opaque so they match Ghostty exactly. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool.card:not([data-role="omp.tool.wait"]) {
+	padding: 8px 12px;
+	border-radius: 10px;
+	background: rgb(from var(--sf-tint-success, var(--code-bg)) r g b / 1);
+	box-shadow: inset 0 0 0 1px var(--og-grid); /* 3:1 edge: the fill alone is only 1.06:1 */
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool.card:is(.st-running, .st-pending):not([data-role="omp.tool.wait"]) {
+	background: rgb(from var(--sf-tint-pending, var(--code-bg)) r g b / 1);
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool.card.st-error:not([data-role="omp.tool.wait"]) {
+	background: rgb(from var(--sf-tint-error, var(--code-bg)) r g b / 1);
+}
+
+.sf-chat-reader[data-surface^="omp."] .sf-tool.card:not([data-role="omp.tool.wait"]) > .sf-tool-body {
+	padding-left: 0;
+}
+
+.sf-chat-reader[data-surface^="omp."]
+	.sf-tool.card:not([data-role="omp.tool.wait"])
+	> .sf-tool-body
+	> :is(.sf-code, .sf-diff, .sf-ansi) {
+	padding: 8px 0 0;
+	border-radius: 0;
+	background: none;
+	box-shadow: inset 0 1px 0 var(--l2);
+}
+
+/* Runs (omp 18.8.8+ on Tern 0.7.1+, .clamp-children): the command, its output and a foot
+   (state · time · facts) arrive as their own omp.run box in the body. That box melts into
+   the card, so the head (title, intent, badges) and the run share one box; its sections
+   keep Tern's hairlines between them. Nothing a run carries is hidden. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool.clamp-children [data-role="omp.run"] {
+	--run-r: 0;
+	--run-px: 0;
+	--run-py: 6px;
+	background: none;
+	box-shadow: none;
+}
+
+/* the command reads `$ command`, as in Ghostty: a dim prompt sign before its first line */
+.sf-chat-reader[data-surface^="omp."]
+	[data-role="omp.run"]
+	> .sf-code[data-role="omp.tool.bash.command"]
+	.sf-code-lines
+	> .sf-ln:first-child
+	> .sf-lt::before {
+	content: "$ ";
+	color: var(--og-quiet);
+}
+
+/* command output recedes: a mini terminal that takes its default foreground from --tv-fg */
+.sf-chat-reader[data-surface^="omp."] .sf-tool-body .sf-ansi {
+	--tv-fg: var(--og-quiet);
+	color: var(--og-quiet); /* Tern 0.7.1+ colours a run's output from color, not --tv-fg */
+}
+
+/* Commands show in full, as in Ghostty. Tern cuts a folded tool's command to one
+   line and wraps it only when unfolded; omp folds every tool while output
+   expansion is off. */
+.sf-chat-reader[data-surface^="omp."] .sf-tool .sf-tool-target.command {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+}
+
+/* Bash reads `$ command`, as in Ghostty: no terminal icon, a dim prompt sign before the
+   command. Where the command is the head (omp before 18.8.8) the "Bash" title goes too;
+   a run keeps its title, which can name the job ("Bash · name"). */
+.sf-chat-reader[data-surface^="omp."] .sf-tool[data-role="omp.tool.bash"] > .sf-tool-head > .sf-tool-ic,
+.sf-chat-reader[data-surface^="omp."]
+	.sf-tool[data-role="omp.tool.bash"]:not(.clamp-children)
+	> .sf-tool-head
+	.sf-tool-title {
+	display: none;
+}
+
+.sf-chat-reader[data-surface^="omp."]
+	.sf-tool[data-role="omp.tool.bash"]
+	> .sf-tool-head
+	.sf-tool-target.command::before {
+	content: "$ ";
+	color: var(--og-quiet);
+}
