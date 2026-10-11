@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 // Refreshes ../reference. Sources: `tern` (the installed Tern's plugin API and CLI help, a copy
-// of docs.stencil.so/tern, and a git clone of stencil-hq/tern-sdk) and `agent-plugins` (the
-// Agent Plugins 1.0.0 schemas and spec, pinned to a release tag, with their licenses;
+// of docs.stencil.so/tern, and a git clone of stencil-hq/tern-sdk), `omp` (a git clone of omp's
+// source at the installed omp's tag; sync-references/omp.ts) and `agent-plugins` (the Agent
+// Plugins 1.0.0 schemas and spec, pinned to a release tag, with their licenses;
 // sync-references/agent-plugins.ts). `bun tools/sync-references.ts [source...]` refreshes the
 // named sources, all when none are named. Each source is staged first; on any failure nothing is
 // swapped and the previous copy stays. Each source owns one section of SYNCED.md. Never commits.
@@ -9,6 +10,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, posix } from "node:path";
 import { syncAgentPlugins } from "./sync-references/agent-plugins";
+import { syncOmp } from "./sync-references/omp";
 import { mustRun, REF, ROOT, run, type Section, swap } from "./sync-references/shared";
 
 const SYNCED = join(REF, "SYNCED.md");
@@ -176,8 +178,12 @@ async function syncTern(): Promise<Section> {
 	}
 }
 
-const SOURCES: Record<string, () => Promise<Section>> = { tern: syncTern, "agent-plugins": syncAgentPlugins };
-const SECTION_ORDER = ["Tern", "Agent Plugins"];
+const SOURCES: Record<string, () => Promise<Section>> = {
+	tern: syncTern,
+	omp: syncOmp,
+	"agent-plugins": syncAgentPlugins,
+};
+const SECTION_ORDER = ["Tern", "omp", "Agent Plugins"];
 
 /** Replaces one `## <title>` section of SYNCED.md, keeping the other sources' sections. */
 async function writeSection(section: Section): Promise<void> {

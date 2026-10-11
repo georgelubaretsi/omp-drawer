@@ -31,8 +31,10 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   chat in Tern's Reader chat style the way omp looks in Ghostty: one box per tool call with its
   heading (title, intent) inside, eval cells included; thoughts left open under their "Thought
   for Ns" line; bash as `$ command`; diffs with one line-number column; your messages as
-  full-width bars, denser replies and text in omp dark-arctic's colours. It needs Tern 0.7.1 or
-  later. Install it with
+  full-width bars, denser replies and text in omp dark-arctic's colours. Outside omp, rendered
+  Markdown in file panes gets a column up to 1200px instead of Tern's 832px, so wide tables and
+  diagrams aren't cut while the pane stays empty around them. It needs Tern 0.7.1 or later.
+  Install it with
   `tern plugin install github.com/georgelubaretsi/omp-drawer/plugins/tern/ghostty-look`.
 - Every text the `tern_lua` tool shows (its description, its answers, errors and hints) is a
   Markdown template in `src/templates/`, filled with omp's own Handlebars: change the wording

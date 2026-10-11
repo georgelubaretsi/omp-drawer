@@ -3,12 +3,12 @@
 `reference/` holds generated upstream material. Never edit it by hand, and it is never linted.
 
 The public repo carries only `agent-plugins/`. The Tern material (`tern-installed/`,
-`tern-docs/`, `tern-sdk/`) and `SYNCED.md` are not in the public repo; fetch them with
-`bun tools/sync-references.ts tern`.
+`tern-docs/`, `tern-sdk/`), omp's source (`omp/`) and `SYNCED.md` are not in the public repo;
+fetch them with `bun tools/sync-references.ts tern omp`.
 
 ## Refreshing
 
-From the repo root: `bun tools/sync-references.ts [tern | agent-plugins ...]` (all sources when
+From the repo root: `bun tools/sync-references.ts [tern | omp | agent-plugins ...]` (all sources when
 none is named). Then `git status -- reference/` and `git diff --stat -- reference/` show what
 changed.
 
@@ -20,6 +20,10 @@ selene). After any Tern update, recheck the look in Tern's Reader chat style:
 the style sheets in `plugins/tern/ghostty-look/` rely on Tern's inner classes, which can change
 (`tern-docs/styles/index.md`, "Avoid inner classes").
 
+For omp work (plugins, extensions, tools, the session journal), check omp's source in `omp/`
+before guessing and cite the file. It is checked out at the tag of the installed omp; refresh it
+first when the omp version in `SYNCED.md` differs from `omp --version`.
+
 ## Contents
 
 - `tern-installed/` (not in the public repo; fetch with the sync): `tern.d.luau` (plugin API)
@@ -28,6 +32,10 @@ the style sheets in `plugins/tern/ghostty-look/` rely on Tern's inner classes, w
   guides, plugin API reference, TSP protocol, script commands.
 - `tern-sdk/`: a git clone of stencil-hq/tern-sdk, ignored by git, written by the sync; search
   it by explicit path.
+- `omp/`: a shallow git clone of can1357/oh-my-pi (MIT) at the tag of the installed omp (about
+  300 MB on disk), ignored by git, written by the sync; search it by explicit path. The extension API is
+  in `packages/coding-agent/src/extensibility/`, the session journal in
+  `packages/coding-agent/src/session/`, the native renderers in `packages/tui/src/`.
 - `agent-plugins/1.0.0/`: `plugin.schema.json` and `mcp.schema.json` from agent-plugins.org
   (the sync fails if they differ from the release tag) and `spec.md`, all pinned to the tag and
   commit in `agent-plugins/NOTICE.md`. The build (`tools/build/`) validates against these files.
@@ -35,7 +43,8 @@ the style sheets in `plugins/tern/ghostty-look/` rely on Tern's inner classes, w
   (schemas Apache-2.0, spec CC-BY-4.0), from the same commit, and `NOTICE.md`, which the sync
   writes: what came from where. They let the folder be redistributed as it is.
 - `SYNCED.md` (not in the public repo; written by the sync): one section per source. Tern:
-  sync date, Tern version, SDK URL and commit. Agent Plugins: sync date, tag, commit and URLs.
+  sync date, Tern version, SDK URL and commit. omp: sync date, omp version, tag and commit.
+  Agent Plugins: sync date, tag, commit and URLs.
 
 ## plugins/tern
 

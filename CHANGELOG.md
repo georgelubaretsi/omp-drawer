@@ -42,8 +42,9 @@ change in a new month moves them into a section for the month they were last cha
   refresh.
 - `bun run fmt` and `bun run fmt:check` format CSS too, with oxfmt and the same settings as
   TypeScript.
-- The README says how to install the tern plugin's `omp-ghostty` look in Tern and that it needs
-  Tern 0.7.1 or later; `docs/reference.md` says to recheck its style sheets after a Tern update.
+- The README says how to install the tern plugin's `omp-ghostty` look in Tern, that it needs
+  Tern 0.7.1 or later, and the one thing it changes outside omp (a wider column for rendered
+  Markdown in file panes); `docs/reference.md` says to recheck its style sheets after a Tern update.
 - The catalog lists the sessions plugin (the `session_read` tool and the agent's own session
   line) and the threads plugin (the open-threads list from the folder a project's
   `.omp/threads.json` names, its rule and skill), both for omp; the README describes them, with
@@ -64,6 +65,11 @@ change in a new month moves them into a section for the month they were last cha
   sent, example labels) is in `tools/agent-content/templates/`. `bun run build` regenerates it
   and `bun run check` fails when a page is out of date, missing or left over, when an omp plugin
   in the catalog has no page, or when a rule or skill a plugin ships is on none.
+- `bun tools/sync-references.ts omp` keeps omp's source in `reference/omp/`: a shallow git clone
+  of can1357/oh-my-pi at the tag of the installed omp (`omp --version`), refreshed in place when
+  the version changes, ignored by git and not in the public repo. `SYNCED.md` gets an omp section;
+  `docs/reference.md` and AGENTS.md say where its extension API, session journal and renderers
+  are, and to check it before guessing at omp.
 
 ### Changed
 
@@ -74,3 +80,6 @@ change in a new month moves them into a section for the month they were last cha
 
 - The build accepts an MCP stdio `command` that is a `./` path with spaces when it names a
   bundled file; a bare command with whitespace is still refused as a shell string.
+- `bun run test` runs the tests under `tools/` only (`bun test ./tools`). As a bare word, `tools`
+  matched any test path containing it, so the test files of a source cloned into `reference/`
+  ran too and failed.

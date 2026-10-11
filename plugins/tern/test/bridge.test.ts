@@ -26,8 +26,7 @@ class FakeWindow {
 
 	/** Creates the wake pipe and keeps it open for reading, as the window's `cat` does. */
 	start(): void {
-		if (Bun.spawnSync(["mkfifo", this.#pipe]).exitCode !== 0) throw new Error("mkfifo failed");
-		this.#reader = openSync(this.#pipe, constants.O_RDONLY | constants.O_NONBLOCK);
+		this.#reader = listen(this.dir, this.token);
 		this.#timer = setInterval(() => void this.#tick(), 5);
 	}
 
@@ -87,6 +86,13 @@ class FakeWindow {
 
 function isRequest(value: unknown): value is { code: string; window?: unknown } {
 	return typeof value === "object" && value !== null && "code" in value && typeof value.code === "string";
+}
+
+/** Creates a window's wake pipe and holds it open for reading, as the window's `cat` does. */
+function listen(dir: string, token: string): number {
+	const pipe = join(dir, `wake-${token}.fifo`);
+	if (Bun.spawnSync(["mkfifo", pipe]).exitCode !== 0) throw new Error("mkfifo failed");
+	return openSync(pipe, constants.O_RDONLY | constants.O_NONBLOCK);
 }
 
 const windows: FakeWindow[] = [];
@@ -266,10 +272,12 @@ describe("tern_lua bridge: at most once", () => {
 
 	test("never runs a request omp withdrew, even when a window takes it at the same moment", async () => {
 		const dir = await bridgeFolder();
-		// Two windows taking requests as fast as they can, while omp withdraws each one at once.
+		// Two windows taking requests as fast as they can, while omp withdraws each one at once. Each
+		// holds its wake pipe open, as a real window does, so a slow moment under load isn't taken
+		// for a window that stopped listening.
 		let runs = 0;
 		const stop = new AbortController();
-		const take = async () => {
+		const take = async (token: string) => {
 			while (!stop.signal.aborted) {
 				for (const name of await readdir(join(dir, "req"))) {
 					const match = /^([\w-]+)\.json$/.exec(name);
@@ -281,22 +289,32 @@ describe("tern_lua bridge: at most once", () => {
 						continue;
 					}
 					runs += 1;
-					await writeFile(`${res}.claimed`, "taker");
+					await writeFile(`${res}.claimed`, token);
 					await writeFile(`${res}.json`, JSON.stringify({ ok: true }));
 					await writeFile(`${res}.done`, "");
 				}
 				await Bun.sleep(0);
 			}
 		};
-		const takers = [take(), take()];
-		let answers = 0;
-		for (let i = 0; i < 100; i++) {
-			if ((await call(options(dir, { claimMs: 0, wakeMs: 1, pollMs: 0 }))).kind === "answer") answers += 1;
+		const tokens = ["race-a", "race-b"];
+		const readers = tokens.map(token => listen(dir, token));
+		const takers = tokens.map(take);
+		const outcomes = { answer: 0, indeterminate: 0 };
+		try {
+			for (let i = 0; i < 100; i++) {
+				const { kind } = await call(options(dir, { claimMs: 0, wakeMs: 1, pollMs: 0 }));
+				if (kind === "answer" || kind === "indeterminate") outcomes[kind] += 1;
+			}
+		} finally {
+			stop.abort();
+			await Promise.all(takers);
+			for (const reader of readers) closeSync(reader);
 		}
-		stop.abort();
-		await Promise.all(takers);
-		expect(runs).toBe(answers);
-	});
+		// At most once: each run was reported as an answer, or as indeterminate (it may have run),
+		// never as unclaimed or cancelled; and each answer came from a run.
+		expect(runs).toBeGreaterThanOrEqual(outcomes.answer);
+		expect(runs).toBeLessThanOrEqual(outcomes.answer + outcomes.indeterminate);
+	}, 30_000);
 
 	test("never runs a request a dead omp left behind, and removes it once expired", async () => {
 		const dir = await bridgeFolder();

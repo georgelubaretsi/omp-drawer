@@ -39,8 +39,9 @@ of `tern_lua`:
 `omp-ghostty` is a look: style sheets that draw omp's chat in Tern the way omp looks in
 Ghostty, with one box per tool call (its heading inside), thoughts left open, bash as
 `$ command`, diffs with one line-number column, your messages as full-width bars, and text in
-the colours of omp's dark-arctic theme. It targets Tern's Reader chat style, needs Tern 0.7.1 or
-later, and styles nothing else:
+the colours of omp's dark-arctic theme. It targets Tern's Reader chat style and needs Tern 0.7.1
+or later. Outside omp it changes one thing: rendered Markdown in file panes gets a column up to
+1200px wide instead of Tern's 832px, so wide tables and diagrams fit:
 
     tern plugin install github.com/georgelubaretsi/omp-drawer/plugins/tern/ghostty-look
 

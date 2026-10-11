@@ -21,8 +21,8 @@ for any user, with no project, client, host or person names and no personal path
   `agent-content.ts`, which writes `docs/agent-content/`: what agents receive from the omp
   plugins, a page per plugin, from sample data run through each plugin's code (`tools/agent-content/`).
 - `reference/`: generated upstream material; never hand-edit. The public repo carries only
-  `agent-plugins/` (its pin is in its `NOTICE.md`); the Tern material and `SYNCED.md` are not in
-  the public repo: fetch them with `bun tools/sync-references.ts tern`.
+  `agent-plugins/` (its pin is in its `NOTICE.md`); the Tern material, omp's source and
+  `SYNCED.md` are not in the public repo: fetch them with `bun tools/sync-references.ts tern omp`.
 - `.github/workflows/check.yml`: this repo's CI: `bun run check`, in the dev shell.
 
 ## Commands
@@ -33,7 +33,7 @@ Run in the dev shell (`nix develop`):
     bun run build         # regenerate manifests and docs/agent-content/; `bun run check` fails on drift
     bun run lint          # oxlint; Luau: `selene plugins`, `stylua --check plugins`
     bun run fmt           # oxfmt; `bun run fmt:check` only checks
-    bun tools/sync-references.ts [tern | agent-plugins ...]   # refresh reference/
+    bun tools/sync-references.ts [tern | omp | agent-plugins ...]   # refresh reference/
 
 ## Workflow
 
@@ -46,6 +46,9 @@ Run in the dev shell (`nix develop`):
 - For Tern work, check `reference/` first and cite the file; fetch it with
   `bun tools/sync-references.ts tern` when it is missing, and refresh it when the Tern section of
   `reference/SYNCED.md` is over 7 days old or its version differs from `tern --version`.
+- For omp work, check omp's source in `reference/omp/` first and cite the file; fetch it with
+  `bun tools/sync-references.ts omp` when it is missing, and refresh it when the omp version in
+  `reference/SYNCED.md` differs from `omp --version`.
 
 ## Conventions
 
