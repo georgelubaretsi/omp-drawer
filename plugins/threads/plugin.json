@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "threads",
+  "version": "0.1.0",
+  "description": "Open threads in front of omp's agent: the project's open lines of work, in the folder its .omp/threads.json names, listed before a prompt whenever the list changes; a rule and skill on writing them",
+  "author": {
+    "name": "George Lubaretsi",
+    "email": "george@lubaretsi.com"
+  },
+  "homepage": "https://github.com/georgelubaretsi/omp-drawer/tree/main/plugins/threads",
+  "repository": "https://github.com/georgelubaretsi/omp-drawer",
+  "license": "MIT",
+  "keywords": [
+    "omp",
+    "threads",
+    "work in progress"
+  ]
+}

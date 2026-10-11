@@ -44,6 +44,26 @@ change in a new month moves them into a section for the month they were last cha
   TypeScript.
 - The README says how to install the tern plugin's `omp-ghostty` look in Tern and that it needs
   Tern 0.7.1 or later; `docs/reference.md` says to recheck its style sheets after a Tern update.
+- The catalog lists the sessions plugin (the `session_read` tool and the agent's own session
+  line) and the threads plugin (the open-threads list from the folder a project's
+  `.omp/threads.json` names, its rule and skill), both for omp; the README describes them, with
+  both messages shown in the chat.
+- AGENTS.md: the text an omp plugin shows lives in Markdown templates (`src/templates/*.md`),
+  filled with omp's own Handlebars, as omp keeps its prompts, with strict values: a name the code
+  doesn't pass throws, and a value named like a Handlebars helper is refused when the template
+  loads. The sessions, threads, tern and agent-variants plugins keep theirs there,
+  with `@oh-my-pi/pi-utils` as a dev dependency for their tests.
+- `docs/agent-content/`: what agents receive from the omp plugins (tool descriptions and
+  parameters, results, errors, messages, rules and skills), each with when it is sent, one page
+  per plugin (workflow's skill on a second): what the agent gets in tinted boxes, parameters and
+  one-line errors as tables. Rules are shown as omp gives them: an always-applied rule's body
+  without its front matter, any other rule's line in the rules list and the body `rule://` reads;
+  skills by their line in the skills list and every file `skill://` reads. kagi's MCP tools are
+  named, not shown: their text comes from the kagi CLI. `bun tools/agent-content.ts` renders it
+  from made-up sample data through each plugin's own code; its wording (headings, when each is
+  sent, example labels) is in `tools/agent-content/templates/`. `bun run build` regenerates it
+  and `bun run check` fails when a page is out of date, missing or left over, when an omp plugin
+  in the catalog has no page, or when a rule or skill a plugin ships is on none.
 
 ### Changed
 

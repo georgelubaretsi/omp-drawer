@@ -23,8 +23,22 @@
       ]
     },
     {
+      "name": "sessions",
+      "category": "development",
+      "hosts": [
+        "omp"
+      ]
+    },
+    {
       "name": "tern",
       "category": "development",
+      "hosts": [
+        "omp"
+      ]
+    },
+    {
+      "name": "threads",
+      "category": "productivity",
       "hosts": [
         "omp"
       ]

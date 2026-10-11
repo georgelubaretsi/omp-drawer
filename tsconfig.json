@@ -8,5 +8,5 @@
     "skipLibCheck": true,
     "types": ["bun"]
   },
-  "include": ["tools/**/*.ts"]
+  "include": ["tools/**/*.ts", "plugins/*/src/markdown.d.ts"]
 }

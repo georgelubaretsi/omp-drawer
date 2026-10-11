@@ -8,6 +8,7 @@ import { constants, existsSync } from "node:fs";
 import { open, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { templates } from "./templates";
 
 export const PLUGIN_ID = "omp-bridge";
 /** The largest request file window.luau reads (its MAX_REQUEST_BYTES). */
@@ -50,13 +51,19 @@ export function isRemotePane(identity: string | undefined): boolean {
 	);
 }
 
+/**
+ * Why a claimed request has no outcome: the call was cancelled, the claiming window stopped
+ * listening, or no answer came within the call's timeout.
+ */
+export type Cause = "cancelled" | "stopped" | "timedOut";
+
 export type Outcome =
 	/** `window`: the token of the window that answered; pass it back as `CallOptions.window`. */
 	| { kind: "answer"; ok: boolean; result: unknown; printed?: string; note?: string; window: string }
 	/** No window took the request, even after a plugin reload; it was withdrawn, so it never ran. */
 	| { kind: "unclaimed" }
 	/** A window took the request but no answer came; it may have run partly or fully. */
-	| { kind: "indeterminate"; reason: string; reloaded: boolean }
+	| { kind: "indeterminate"; cause: Cause; reloaded: boolean }
 	/** Aborted before any window took the request; it never ran. */
 	| { kind: "cancelled" }
 	/** The Tern plugin has never loaded (its data folder is missing), even after a reload. */
@@ -89,7 +96,7 @@ export interface CallOptions {
 type Attempt =
 	| Exclude<Outcome, { kind: "indeterminate" | "not_loaded" | "too_large" }>
 	/** `stopped`: the claiming window stopped listening, so its bridge is gone. */
-	| { kind: "indeterminate"; reason: string; stopped: boolean };
+	| { kind: "indeterminate"; cause: Cause; stopped: boolean };
 
 const WAKE_PIPE = /^wake-(.+)\.fifo$/;
 const RESULT_TTL_MS = 60 * 60 * 1000;
@@ -223,7 +230,7 @@ function isAnswerBody(value: unknown): value is AnswerBody {
 async function readAnswer(res: string): Promise<Attempt> {
 	const parsed: unknown = JSON.parse(await readFile(`${res}.json`, "utf8"));
 	// A JSON null was never a readable answer; other non-objects read as one with no fields.
-	if (parsed === null) throw new TypeError(`${res}.json holds null, not an answer`);
+	if (parsed === null) throw new TypeError(templates.errors.nullAnswer.render({ file: `${res}.json` }));
 	const body = isAnswerBody(parsed) ? parsed : {};
 	return {
 		kind: "answer",
@@ -237,7 +244,7 @@ async function readAnswer(res: string): Promise<Attempt> {
 
 async function cancel(x: Exchange, waiting: boolean): Promise<Attempt> {
 	if (waiting && (await withdraw(x.req, `${x.res}.withdrawn`))) return { kind: "cancelled" };
-	return { kind: "indeterminate", reason: "cancelled after a Tern window took the request", stopped: false };
+	return { kind: "indeterminate", cause: "cancelled", stopped: false };
 }
 
 /** The request still waits in req/: withdraw it once its time is up, otherwise wake the windows. */
@@ -269,22 +276,9 @@ async function whileClaimed(x: Exchange, now: number): Promise<Attempt | undefin
 		// A window records its token right after taking a request, so a token still missing
 		// checks later means it was stopped mid-claim: that counts as a window that stopped listening.
 		x.missed = token && (await wake(join(x.o.dir, `wake-${token}.fifo`))) ? 0 : x.missed + 1;
-		if (x.missed >= MISSED_CHECKS) {
-			return {
-				kind: "indeterminate",
-				reason:
-					"the Tern window that took the request stopped listening (most likely the code ran past Tern's 50 ms plugin budget, or the window closed)",
-				stopped: true,
-			};
-		}
+		if (x.missed >= MISSED_CHECKS) return { kind: "indeterminate", cause: "stopped", stopped: true };
 	}
-	if (now - x.start >= x.o.timeoutMs) {
-		return {
-			kind: "indeterminate",
-			reason: `no answer within ${Math.round(x.o.timeoutMs / 1000)} s`,
-			stopped: false,
-		};
-	}
+	if (now - x.start >= x.o.timeoutMs) return { kind: "indeterminate", cause: "timedOut", stopped: false };
 	return undefined;
 }
 
@@ -368,5 +362,5 @@ export async function call(o: CallOptions): Promise<Outcome> {
 	if (result.kind !== "indeterminate") return result;
 	// The claiming window's bridge is gone; reload now so the next call finds one.
 	if (result.stopped) await o.reload();
-	return { kind: "indeterminate", reason: result.reason, reloaded: result.stopped };
+	return { kind: "indeterminate", cause: result.cause, reloaded: result.stopped };
 }

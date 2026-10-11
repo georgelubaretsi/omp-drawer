@@ -7,7 +7,9 @@ Codex where a plugin works there too, and the [Tern](https://docs.stencil.so/ter
 | --- | --- | --- |
 | [agent-variants](plugins/agent-variants) | The `agent_variant_setup` tool: temporary project-scoped variants of an agent, with explicit model routing | omp |
 | [kagi](plugins/kagi/README.md) | Kagi web search through Kagi's MCP server, showing only the tools you choose; the `kagi` skill and, for omp, the `web-search` rule | omp, Claude Code, Codex |
+| [sessions](plugins/sessions) | The `session_read` tool: reads, pages and searches an omp session journal by session id and line without opening it whole, with asks shown in full (each question, its options and what was picked or typed); and a line, shown in the chat, telling the agent its own session id | omp |
 | [tern](plugins/tern) | The `tern_lua` tool, running Lua with Tern's window API in the Tern window holding omp's pane, and the `tern` skill | omp, with Tern |
+| [threads](plugins/threads) | Your project's open threads in front of the agent: the files in the folder its `.omp/threads.json` names, listed before a prompt whenever the list changes and shown in the chat; a rule pointing to the `threads` skill, which gives the few parts of a thread file the list reads and leaves the rest to the agent | omp |
 | [workflow](plugins/workflow/README.md) | Rules on how to work (proportion, thinking before building, fixing corrections as classes, project tooling, changelogs, asking for decisions) and the `failure-classes` skill | omp |
 
 ## Install

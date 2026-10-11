@@ -1,4 +1,5 @@
 import { parseDocument } from "yaml";
+import { templates } from "./templates";
 
 export interface RouteUpdate {
 	agentName: string;
@@ -8,22 +9,18 @@ export interface RouteUpdate {
 }
 
 export function configureTemporaryRoute(content: string | undefined, update: RouteUpdate): string {
-	if (update.selectors.length === 0) throw new Error("A temporary route requires at least one model selector.");
+	const { errors } = templates;
+	if (update.selectors.length === 0) throw new Error(errors.noSelector.render());
 
 	const document = parseDocument(content ?? "{}\n");
-	if (document.errors.length > 0) throw new Error(`Invalid .omp/config.yml: ${document.errors[0]?.message}`);
+	if (document.errors.length > 0) throw new Error(errors.badConfig.render({ error: document.errors[0]?.message }));
 
 	const existing = document.getIn(["modelRoles", update.role]);
-	if (existing !== undefined && !update.allowExisting) {
-		throw new Error(`Model role ${update.role} already exists.`);
-	}
+	if (existing !== undefined && !update.allowExisting)
+		throw new Error(errors.roleExists.render({ role: update.role }));
 
 	const agentOverride = document.getIn(["task", "agentModelOverrides", update.agentName]);
-	if (agentOverride !== undefined) {
-		throw new Error(
-			`Agent ${update.agentName} has a persistent model override that would bypass its temporary role.`,
-		);
-	}
+	if (agentOverride !== undefined) throw new Error(errors.persistentOverride.render({ agent: update.agentName }));
 
 	document.setIn(["modelRoles", update.role], update.selectors[0]);
 	const fallbacks = update.selectors.slice(1);

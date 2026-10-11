@@ -1,0 +1,1 @@
+The omp-bridge Tern plugin is not loaded: its data folder {{dir}} does not exist. Install it with: tern plugin link "{{pluginDir}}" && tern plugin reload. If Tern runs with TERN_CONFIG_DIR, give omp the same value.

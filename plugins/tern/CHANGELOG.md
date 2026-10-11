@@ -34,4 +34,8 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   full-width bars, denser replies and text in omp dark-arctic's colours. It needs Tern 0.7.1 or
   later. Install it with
   `tern plugin install github.com/georgelubaretsi/omp-drawer/plugins/tern/ghostty-look`.
+- Every text the `tern_lua` tool shows (its description, its answers, errors and hints) is a
+  Markdown template in `src/templates/`, filled with omp's own Handlebars: change the wording
+  there, not in the code. A name a template uses that the code doesn't fill is an error, not
+  blank text.
 - Supported host: omp.

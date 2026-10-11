@@ -21,4 +21,8 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   non-temporary agents or roles, and updates an existing temporary variant only when asked.
 - Lists the project's temporary agents, with their source agent and requested model, when a
   session starts.
+- Every text the plugin shows (the tool's description, results and errors, the session-start
+  notice, the description written into a variant) is a Markdown template in `src/templates/`,
+  filled with omp's own Handlebars: change the wording there, not in the code. A name a
+  template uses that the code doesn't fill is an error, not blank text.
 - Supported host: omp.

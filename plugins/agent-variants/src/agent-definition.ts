@@ -1,5 +1,6 @@
 import { parseDocument, type Document } from "yaml";
 import type { TemporaryAgentMetadata, ThinkingLevel } from "./domain";
+import { templates } from "./templates";
 
 interface ParsedAgentDefinition {
 	document: Document.Parsed;
@@ -18,16 +19,17 @@ const FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/;
 
 function parseAgentDefinition(content: string): ParsedAgentDefinition {
 	const match = FRONTMATTER.exec(content);
-	if (!match) throw new Error("Agent definition must contain YAML frontmatter.");
+	if (!match) throw new Error(templates.errors.noFrontmatter.render());
 	const document = parseDocument(match[1]);
-	if (document.errors.length > 0) throw new Error(`Invalid agent frontmatter: ${document.errors[0]?.message}`);
+	if (document.errors.length > 0)
+		throw new Error(templates.errors.badFrontmatter.render({ error: document.errors[0]?.message }));
 	return { document, body: match[2] ?? "" };
 }
 
 function requiredString(document: Document.Parsed, field: string): string {
 	const value = document.get(field);
 	if (typeof value !== "string" || value.trim().length === 0) {
-		throw new Error(`Agent frontmatter requires a non-empty ${field}.`);
+		throw new Error(templates.errors.missingField.render({ field }));
 	}
 	return value.trim();
 }
@@ -42,7 +44,7 @@ export function createAgentVariant(content: string, options: VariantOptions): st
 	requiredString(document, "description");
 
 	document.set("name", options.name);
-	document.set("description", `Temporary ${sourceAgent} variant for ${options.requestedModel}`);
+	document.set("description", templates.variant.render({ sourceAgent, model: options.requestedModel }));
 	document.set("model", `@${options.role}`);
 	if (options.thinking) {
 		document.delete("thinking");

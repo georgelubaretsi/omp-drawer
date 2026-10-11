@@ -47,4 +47,15 @@ describe("agent definitions", () => {
 
 		expect(variant).toContain("thinking-level: medium");
 	});
+
+	test("refuses a definition without frontmatter, with broken frontmatter, or without a description", () => {
+		const options = { name: "tmp", role: "tmp", requestedModel: "K3", createdAt: "2026-08-26T12:00:00.000Z" };
+		expect(() => createAgentVariant("Just text.\n", options)).toThrow(
+			"Agent definition must contain YAML frontmatter.",
+		);
+		expect(() => createAgentVariant("---\nname: [\n---\n", options)).toThrow(/^Invalid agent frontmatter: \S/);
+		expect(() => createAgentVariant("---\nname: designer\n---\n", options)).toThrow(
+			"Agent frontmatter requires a non-empty description.",
+		);
+	});
 });

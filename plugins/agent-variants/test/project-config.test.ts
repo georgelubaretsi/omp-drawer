@@ -50,6 +50,14 @@ describe("configureTemporaryRoute", () => {
 		).toThrow("Agent tmp-designer-ox-alpha has a persistent model override");
 	});
 
+	test("refuses a route without selectors, and configuration that isn't YAML", () => {
+		const update = { agentName: "tmp-a", role: "tmp_a", selectors: ["x/y"], allowExisting: false };
+		expect(() => configureTemporaryRoute(undefined, { ...update, selectors: [] })).toThrow(
+			"A temporary route requires at least one model selector.",
+		);
+		expect(() => configureTemporaryRoute("modelRoles: [\n", update)).toThrow(/^Invalid \.omp\/config\.yml: \S/);
+	});
+
 	test("writes new project configuration in readable block style", () => {
 		const configured = configureTemporaryRoute(undefined, {
 			agentName: "tmp-designer-ox-alpha",

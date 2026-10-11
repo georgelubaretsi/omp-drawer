@@ -1,4 +1,5 @@
 import type { BillingClass, ModelCandidate, ModelCost, RankedModel, SelectionRequest, SelectionResult } from "./domain";
+import { templates } from "./templates";
 
 function normalize(value: string): string {
 	return value
@@ -91,10 +92,11 @@ export function selectModels(models: readonly ModelCandidate[], request: Selecti
 		.filter(model => supportsThinking(model, request.thinking))
 		.map(model => rank(model, subscriptions));
 
-	if (matches.length === 0) {
-		const suffix = request.thinking ? ` with ${request.thinking} thinking` : "";
-		return { status: "not_found", reason: `No authenticated model matches “${request.query}”${suffix}.` };
-	}
+	if (matches.length === 0)
+		return {
+			status: "not_found",
+			reason: templates.errors.noModel.render({ query: request.query, thinking: request.thinking }),
+		};
 
 	const free = matches.filter(model => model.billing === "free").toSorted(compareFree);
 	const subscription = matches

@@ -205,9 +205,7 @@ describe("tern_lua bridge: at most once", () => {
 		w.start();
 		const o = options(dir);
 		const outcome = await call(o);
-		expect(outcome.kind).toBe("indeterminate");
-		expect(outcome.kind === "indeterminate" && outcome.reason).toContain("stopped listening");
-		expect(outcome.kind === "indeterminate" && outcome.reloaded).toBe(true);
+		expect(outcome).toMatchObject({ kind: "indeterminate", cause: "stopped", reloaded: true });
 		expect(o.reloads()).toBe(1);
 		expect(w.runs).toBe(1);
 		expect(await readdir(join(dir, "req"))).toEqual([]);
@@ -220,7 +218,7 @@ describe("tern_lua bridge: at most once", () => {
 		const o = options(dir, { timeoutMs: 10_000 });
 		const started = Date.now();
 		const outcome = await call(o);
-		expect(outcome).toMatchObject({ kind: "indeterminate", reloaded: true });
+		expect(outcome).toMatchObject({ kind: "indeterminate", cause: "stopped", reloaded: true });
 		expect(Date.now() - started).toBeLessThan(2000);
 		expect(o.reloads()).toBe(1);
 		expect(w.runs).toBe(1);
@@ -232,9 +230,7 @@ describe("tern_lua bridge: at most once", () => {
 		w.start();
 		const o = options(dir, { timeoutMs: 400 });
 		const outcome = await call(o);
-		expect(outcome.kind).toBe("indeterminate");
-		expect(outcome.kind === "indeterminate" && outcome.reason).toContain("no answer within");
-		expect(outcome.kind === "indeterminate" && outcome.reloaded).toBe(false);
+		expect(outcome).toMatchObject({ kind: "indeterminate", cause: "timedOut", reloaded: false });
 		expect(o.reloads()).toBe(0);
 		expect(w.runs).toBe(1);
 	});

@@ -1,0 +1,27 @@
+{
+  "name": "omp-drawer-threads",
+  "version": "0.1.0",
+  "description": "Open threads in front of omp's agent: the project's open lines of work, in the folder its .omp/threads.json names, listed before a prompt whenever the list changes; a rule and skill on writing them",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgelubaretsi/omp-drawer.git",
+    "directory": "plugins/threads"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@oh-my-pi/pi-coding-agent": "18.8.9",
+    "@oh-my-pi/pi-utils": "18.8.9",
+    "@types/bun": "^1.2.22",
+    "typescript": "^5.9.3"
+  },
+  "omp": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}

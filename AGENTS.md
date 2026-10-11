@@ -8,12 +8,18 @@ for any user, with no project, client, host or person names and no personal path
 - `plugins/<name>/`: one installable package, with its `plugin.json` and `CHANGELOG.md`.
 - `plugins/kagi/`: Kagi web search: the pinned kagi CLI's MCP server (`scripts/mcp.sh`, its
   default `KAGI_MCP_TOOLS`), the `kagi` skill and the `web-search` rule.
+- `plugins/sessions/`: the `session_read` tool (reads omp session journals, streamed) and the
+  line, shown in the chat, naming the agent's own session.
 - `plugins/tern/`: the `tern_lua` tool and `tern` skill; `tern-plugin/` is its Tern half
   (`omp-bridge`), `ghostty-look/` the `omp-ghostty` Tern plugin (style sheets, the look).
+- `plugins/threads/`: the open-threads list (from the folder a project's `.omp/threads.json`
+  names), the `threads` rule and the `threads` skill.
 - `plugins/workflow/`: rules and the `failure-classes` skill on how to work, for any project.
 - `catalog.json`: the plugin list and hosts; the build generates the manifests from it.
 - `CHANGELOG.md`: this repo's own changes (tooling, catalog, docs, CI), in monthly sections.
-- `tools/`: the build, its schemas, the launcher, the changelog checks and the reference sync.
+- `tools/`: the build, its schemas, the launcher, the changelog checks, the reference sync, and
+  `agent-content.ts`, which writes `docs/agent-content/`: what agents receive from the omp
+  plugins, a page per plugin, from sample data run through each plugin's code (`tools/agent-content/`).
 - `reference/`: generated upstream material; never hand-edit. The public repo carries only
   `agent-plugins/` (its pin is in its `NOTICE.md`); the Tern material and `SYNCED.md` are not in
   the public repo: fetch them with `bun tools/sync-references.ts tern`.
@@ -24,7 +30,7 @@ for any user, with no project, client, host or person names and no personal path
 Run in the dev shell (`nix develop`):
 
     bun run check         # generated files, lint, fmt:check, typecheck, tests
-    bun run build         # regenerate manifests; `bun tools/build.ts --check` fails on drift
+    bun run build         # regenerate manifests and docs/agent-content/; `bun run check` fails on drift
     bun run lint          # oxlint; Luau: `selene plugins`, `stylua --check plugins`
     bun run fmt           # oxfmt; `bun run fmt:check` only checks
     bun tools/sync-references.ts [tern | agent-plugins ...]   # refresh reference/
@@ -49,6 +55,20 @@ Run in the dev shell (`nix develop`):
 - No symlinks in plugin sources; fixed names (`plugin.json`, `SKILL.md`, ...) match exactly.
 - Paths here are relative to this repo's root (`plugins/agent-variants`, not a workspace path).
 - Workflow rules stay general: a lesson from one project goes in that project's AGENTS.md.
+- Text an omp plugin shows (tool descriptions, messages, errors, output) lives in
+  `src/templates/*.md`, as omp keeps its prompts: one file per output, its body a Handlebars
+  layout, its frontmatter the short texts it uses. `src/template.ts` (the same in each plugin)
+  fills them with omp's own Handlebars (`prompt.compile` from `@oh-my-pi/pi-utils`, which omp
+  provides at runtime; a devDependency for tests), never `prompt.render`, whose tidying changes
+  the text filled in. Identifiers stay in code. Values are strict: a name the code doesn't pass
+  throws, where Handlebars would print nothing, so code passes every name a template uses (an
+  absent one as undefined), and tests run each template's paths. A value named like one of omp's
+  Handlebars helpers (`default`, `join`, ...) would call the helper, so it is refused when the
+  template loads. A new or changed output gets a sample in the plugin's module under
+  `tools/agent-content/`; review the diff of `docs/agent-content/` that `bun run build` writes.
+- Text a tool writes for people (headings, notes, labels) lives in Markdown templates too, not
+  in its code: `tools/agent-content/templates/` holds the agent-content pages' wording, and the
+  code passes only sample data and plugin outputs.
 
 ## Code Review Rules
 

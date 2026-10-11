@@ -3,6 +3,7 @@ import { homedir, tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { readAgentName, readTemporaryAgent } from "./agent-definition";
 import type { TemporaryAgentMetadata } from "./domain";
+import { templates } from "./templates";
 
 export interface CommandResult {
 	stdout: string;
@@ -34,7 +35,7 @@ export async function resolveScopePaths(
 
 	const result = await execute("omp", ["config", "path"], { cwd, timeout: 10_000 });
 	if (result.code !== 0 || result.stdout.trim().length === 0) {
-		throw new Error(`Unable to resolve the active OMP config path: ${result.stderr.trim()}`);
+		throw new Error(templates.errors.configPath.render({ error: result.stderr.trim() }));
 	}
 	const root = result.stdout.trim().replace(/^~(?=$|\/)/, homedir());
 	return { root, agentsDir: join(root, "agents"), configPath: join(root, "config.yml") };
@@ -92,14 +93,14 @@ export async function loadSourceAgent(name: string, cwd: string, execute: Execut
 			cwd,
 			timeout: 30_000,
 		});
-		if (result.code !== 0) throw new Error(`Unable to export bundled agents: ${result.stderr.trim()}`);
+		if (result.code !== 0) throw new Error(templates.errors.exportFailed.render({ error: result.stderr.trim() }));
 		const bundled = await findAgentInDirectory(exportDir, name);
 		if (bundled) return bundled;
 	} finally {
 		await rm(exportDir, { recursive: true, force: true });
 	}
 
-	throw new Error(`Agent “${name}” was not found in project, user, or bundled agent definitions.`);
+	throw new Error(templates.errors.agentNotFound.render({ name }));
 }
 
 async function atomicWrite(path: string, content: string): Promise<void> {

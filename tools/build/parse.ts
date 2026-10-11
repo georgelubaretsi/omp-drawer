@@ -57,10 +57,15 @@ export async function readJson(root: string, rel: string, problems: string[]): P
 }
 
 /**
- * The YAML frontmatter of SKILL.md file `rel`, with repeated keys reported under `<rel> frontmatter`;
- * undefined, with the problem reported, when there is none or it doesn't parse.
+ * The YAML frontmatter of Markdown file `rel` (a SKILL.md, a rule), with the text after it and
+ * repeated keys reported under `<rel> frontmatter`; undefined, with the problem reported, when
+ * there is none or it doesn't parse.
  */
-export function readFrontmatter(rel: string, text: string, problems: string[]): { value: unknown } | undefined {
+export function readFrontmatter(
+	rel: string,
+	text: string,
+	problems: string[],
+): { value: unknown; body: string } | undefined {
 	const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(text);
 	if (!match) {
 		problems.push(`${rel}: must start with YAML frontmatter between "---" lines`);
@@ -73,5 +78,5 @@ export function readFrontmatter(rel: string, text: string, problems: string[]): 
 		return undefined;
 	}
 	yamlDuplicates(`${rel} frontmatter`, doc.contents, "", problems);
-	return { value: doc.toJS() };
+	return { value: doc.toJS(), body: text.slice(match[0].length) };
 }
