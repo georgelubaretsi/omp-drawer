@@ -18,14 +18,14 @@ Claude on a Mac or a Windows PC: the piebird installer ([Install](../../README.m
 
 ## What it adds
 
-| Rule | How omp loads it |
-| --- | --- |
-| `proportion`, `think-before-building`, `recurring-corrections` | in full, every agent |
-| `proportion-review` | in full, the `reviewer` agent |
-| `ask-for-decisions` | in full, the main agent |
-| `project-tooling`, `changelog` | listed; the agent reads one when it applies |
+| Rule | What it holds | How omp loads it |
+| --- | --- | --- |
+| `piebird-workflow-rules` | think before building, proportion, recurring corrections | in full, every agent |
+| `piebird-workflow-rules-main` | asking for decisions | in full, the main agent |
+| `piebird-workflow-rules-reviewer` | what a reviewer reports | in full, the `reviewer` agent |
+| `project-tooling`, `changelog` | the project's own tools; changelogs | listed; the agent reads one when it applies |
 
-Claude Code has no rules of its own, so the plugin's mod puts them in a block of the
+Claude Code doesn't load rules from a plugin, so the plugin's mod puts them in a block of the
 conversation's context: the always-applied ones for the main agent in full, the others by name
 and file; the reviewer's rule stays out. Codex gets the skill.
 
@@ -38,7 +38,7 @@ for word, and the block Claude Code gets.
 ## Codex code review
 
 Codex code review doesn't load plugins. To give it the same bar for findings as the `reviewer`
-agent, paste the text of `rules/proportion-review.md` (below its frontmatter) into ChatGPT
-Settings > Code Review, and paste it again when this plugin's changelog says that rule changed.
-OpenAI documents the setting for reviews started in the ChatGPT app; check that your GitHub
-reviews follow it too.
+agent, paste the text of `rules/piebird-workflow-rules-reviewer.md` (below its frontmatter) into
+ChatGPT Settings > Code Review, and paste it again when this plugin's changelog says that rule
+changed. OpenAI documents the setting for reviews started in the ChatGPT app; check that your
+GitHub reviews follow it too.

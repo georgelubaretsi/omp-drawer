@@ -1,7 +1,7 @@
 // piebird-threads's Claude Code part, a mod: a block in the conversation's context holding the
-// plugin's rule (rules/threads.md, which points the agent to the threads skill) and the project's
-// open threads (core/update.ts). Claude Code computes it at the start of a conversation and again
-// after compaction or /clear.
+// plugin's rule (rules/piebird-threads.md, which points the agent to the threads skill) and the
+// project's open threads (core/update.ts). Claude Code computes it at the start of a conversation
+// and again after compaction or /clear.
 import type { Api, Register } from "claude-code";
 import type { Io, Place } from "../../kit/core/io";
 import { contextBlock } from "../../kit/claude/context";
@@ -61,7 +61,7 @@ async function placeOf($: Api): Promise<Place> {
 export const register: Register = (on, options) => {
 	on("prompt.context", async ($, e, next) => {
 		const r = await next(e);
-		const rule = ruleText(await $.fs.read(`${$.plugin.root}/rules/threads.md`));
+		const rule = ruleText(await $.fs.read(`${$.plugin.root}/rules/piebird-threads.md`));
 		// Claude Code reads plugin options from the person's settings only, never a project's.
 		const at = { choice: { person: options.folder }, last: undefined, now: Date.now() / 1000 };
 		// A list that can't be read leaves the rule alone in the block.

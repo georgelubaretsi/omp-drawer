@@ -15,11 +15,11 @@ for any user, with no project, client, host or person names and no personal path
 - `plugins/piebird-agent-variants/`: the `agent_variant_setup` tool.
 - `plugins/piebird-sessions/`: the `session_read` tool (reads omp session journals, streamed)
   and the line, shown in the chat, naming the agent's own session.
-- `plugins/piebird-tern-bridge/`: the `tern_lua` tool and `tern` skill; `so.stencil.tern/` is its
-  Tern half.
+- `plugins/piebird-tern-bridge/`: the `tern_lua` tool, the `tern` skill and, inside Tern, a part of
+  every agent's system prompt; `so.stencil.tern/` is its Tern half.
 - `plugins/piebird-threads/`: the open-threads list (from the folder its `folder` setting or a
-  project's `.omp/threads.json` names) for omp and Claude Code, the `threads` rule and the
-  `threads` skill.
+  project's `.omp/threads.json` names) for omp and Claude Code, its rule and the `threads`
+  skill.
 - `plugins/piebird-workflow-rules/`: rules and the `failure-classes` skill on how to work, the rules
   in Claude Code through its mod.
 - `plugins/piebird-tern-ghostty-style/`: the look, a Tern plugin of style sheets in `so.stencil.tern/`.
@@ -151,6 +151,15 @@ Run in the dev shell (`nix develop`):
   loaded with `internal/text` (Go's `text/template`, which fails on a missing field or key, with
   the frontmatter read as YAML); its errors reach the model as ids with values, which the
   plugin's catalog words.
+- Text an agent gets always costs every session, so it goes in always only when all three hold:
+  the agent can't tell by itself when to look it up (a judgement or a reflex, not an event),
+  missing it causes a mistake nobody notices at once, and it is short. Anything else is a skill
+  or a rule read on demand, whose description states the duty itself. An always-applied rule is
+  named for whom it is, `rules/<plugin>.md` (every agent) or `rules/<plugin>-<agent>.md` (its
+  `agents`), and grows by sections, not files beside it; a rule read on demand is one file per
+  topic. Text that matters only in some setting (inside Tern) comes from the plugin's code there,
+  not `rules/`. The build refuses a misnamed always-applied rule, and an agent whose always-on
+  rules from one plugin pass 1,500 tokens (`tools/build/rules.ts`).
 - Every plugin that sends the model anything (a catalog, operations, rules or skills) has a
   scripted session, `test/scenario.ts`, run through its real shells by `tools/model-page.ts` into
   its `docs/model/` page: each text in each harness with the messages it is made of, then the

@@ -1,6 +1,6 @@
 ---
 name: threads
-description: "Threads, the files that keep work in progress: where they live, the few parts the plugin reads, and how to keep them useful."
+description: "Threads, the files that keep work in progress. Read this before you open, create or update a thread, and before switching topic or ending the session: where threads live, the few parts the plugin reads, and how to keep them useful."
 ---
 
 # Threads

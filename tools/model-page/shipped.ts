@@ -1,9 +1,9 @@
 // The skills and rules a plugin ships as files, for its "what the model sees" page. Every harness
 // reads a plugin's skills itself: each lists a skill's name and description, and the agent reads
 // the whole SKILL.md (and the files it points to) when the description fits the task. Rules are
-// omp's: an always-applied rule's body is in every system prompt, any other rule is a line in the
-// rules list whose body rule:// reads. Where a plugin gives Claude Code or Codex its rules, its
-// shell does, and the scripted session shows it.
+// omp's: an always-applied rule's body is in the system prompt of the agents it is for (every agent
+// without `agents`), any other rule is a line in the rules list whose body rule:// reads. Where a
+// plugin gives Claude Code or Codex its rules, its shell does, and the scripted session shows it.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, sep } from "node:path";
 import { isObject } from "../build/json";
@@ -51,6 +51,12 @@ function skills(plugin: string): string[] {
 		});
 }
 
+/** Whose system prompt an always-applied rule is in, from its `agents` (absent: every agent's). */
+function audience(agents: unknown): string {
+	const named = typeof agents === "string" ? [agents] : Array.isArray(agents) ? agents.map(text) : [];
+	return named.length === 0 ? "every omp agent" : `omp's ${named.join(" and ")} agent`;
+}
+
 function rules(plugin: string): string[] {
 	const dir = join(plugin, "rules");
 	if (!existsSync(dir)) return [];
@@ -62,7 +68,7 @@ function rules(plugin: string): string[] {
 			const name = file.slice(0, -3);
 			const when =
 				front.alwaysApply === true
-					? "In every omp session's system prompt, without its front matter:"
+					? `In the system prompt of ${audience(front.agents)}, without its front matter:`
 					: `In omp's rules list (\`${name}\`: ${text(front.description)}); \`rule://${name}\` reads its body:`;
 			return [`### Rule \`${name}\``, "", when, "", fenced(body)];
 		});

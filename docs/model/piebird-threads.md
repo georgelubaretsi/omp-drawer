@@ -50,14 +50,14 @@ it, as the steps above show.
 
 ### Skill `threads`
 
-In the skills list: `threads`: Threads, the files that keep work in progress: where they live, the few parts the plugin reads, and how to keep them useful.
+In the skills list: `threads`: Threads, the files that keep work in progress. Read this before you open, create or update a thread, and before switching topic or ending the session: where threads live, the few parts the plugin reads, and how to keep them useful.
 
 The whole `SKILL.md`, which the agent reads when the description fits its task:
 
 ```text
 ---
 name: threads
-description: "Threads, the files that keep work in progress: where they live, the few parts the plugin reads, and how to keep them useful."
+description: "Threads, the files that keep work in progress. Read this before you open, create or update a thread, and before switching topic or ending the session: where threads live, the few parts the plugin reads, and how to keep them useful."
 ---
 
 # Threads
@@ -91,9 +91,9 @@ Leave out what git or the code already says.
 - A thread is notes, not proof: before telling the user where a thread's work stands, check it against git, CI and running agents.
 ```
 
-### Rule `threads`
+### Rule `piebird-threads`
 
-In every omp session's system prompt, without its front matter:
+In the system prompt of every omp agent, without its front matter:
 
 ```text
 # Threads

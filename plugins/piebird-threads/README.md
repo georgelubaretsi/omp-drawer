@@ -43,8 +43,9 @@ The list reads only the front matter (`next`, `area`), the questions under
 committed. A thread untouched for 10 days drops out of the list until it changes; a finished one
 moves to `done/`. The rest of the file is yours.
 
-The `threads` rule has the agent read the `threads` skill before it opens or updates a thread,
-and update it before you switch topic or end the session.
+The `piebird-threads` rule has the agent read the `threads` skill before it opens or updates a
+thread, and update it before you switch topic or end the session. Codex, which gets no rule, finds
+the same in the skill's description.
 
 [What the model sees](../../docs/model/piebird-threads.md): the list, the rule and the skill, word
 for word, in omp and Claude Code.

@@ -26,9 +26,9 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   read.
 - In Claude Code, a mod (`com.anthropic.claudecode/`) puts the rule and the open threads in a
   block of the conversation's context, at its start and after compaction or `/clear`.
-- For Codex, the skill.
-- Rule `threads` (always applied), one sentence: read the `threads` skill before opening, creating
-  or updating a thread, and before switching topic or ending the session.
+- For Codex, the skill, whose description says when to read it.
+- Rule `piebird-threads` (always applied), one sentence: read the `threads` skill before opening,
+  creating or updating a thread, and before switching topic or ending the session.
 - Skill `threads`: the parts of a thread file the list reads (the folder the setting names,
   asking the user when there is none; one file per open thread, finished
   ones in `done/`; `next` and `area` in the front matter; questions under
@@ -45,6 +45,9 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- The rule `threads` is `piebird-threads`: an always-applied rule is named for its plugin. The
+  skill's description says when to read it (before opening, creating or updating a thread, and
+  before switching topic or ending the session), for an agent with no rules such as Codex.
 - In omp, a project's `.omp/plugin-overrides.json` no longer overrides your own threads folder:
   it ranks with the project's settings file, below yours.
 - The threads skill starts from the folder the open-threads list names, so the agent writes there

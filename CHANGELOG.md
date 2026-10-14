@@ -12,6 +12,12 @@ change in a new month moves them into a section for the month they were last cha
 
 ### Added
 
+- Rules are written for what they cost (AGENTS.md, Conventions): text goes in always only when the
+  agent can't tell by itself when to look it up, missing it goes unnoticed, and it is short. The
+  build refuses an always-applied rule not named for whom it is (`rules/<plugin>.md` for every
+  agent, `rules/<plugin>-<agent>.md` for one) and an agent whose always-on rules from one plugin
+  pass about 1,500 tokens (`tools/build/rules.ts`). The model pages say whose system prompt each
+  always-applied rule is in.
 - The desktop installer (`installer/`, `docs/installer.md`): one program per platform, a disk
   image with "Install piebird.app" for macOS and an .exe for Windows, with every plugin built in.
   It finds ChatGPT, Claude, Claude Code, Codex and omp, opens a page in the browser listing the

@@ -8,6 +8,7 @@ import { modelFiles } from "./model";
 import { operationProblems, operationsFiles } from "./operations";
 import { generatedLinkProblems } from "./paths";
 import { brandProblems, ompImportProblems, purityProblems } from "./purity";
+import { rulesProblems } from "./rules";
 import { type Host, MARKET_HOSTS, type MarketHost } from "./schemas";
 import {
 	claudeUserConfig,
@@ -132,6 +133,7 @@ export async function plan(root: string): Promise<Plan> {
 		...(await brandProblems(root, plugins)),
 		...(await operationProblems(root, plugins)),
 		...(await modSnippetProblems(root, plugins)),
+		...(await rulesProblems(root, plugins)),
 	];
 	if (problems.length > 0) throw new ValidationError(problems);
 	const files = new Map<string, string>();

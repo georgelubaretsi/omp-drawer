@@ -1,6 +1,7 @@
 // piebird-tern-bridge in omp: the tern_lua tool, which runs Lua in the Tern window holding this
-// omp's pane through the plugin's Tern half (so.stencil.tern/; omp's side is src/bridge.ts), and
-// the Tern half kept installed.
+// omp's pane through the plugin's Tern half (so.stencil.tern/; omp's side is src/bridge.ts), the
+// Tern half kept installed, and, with the tool, a part of every agent's system prompt on working
+// in Tern (core/model.ftl, in-tern): only inside Tern, which a rule file can't tell.
 // Its answers and errors are core's (core/output.ts).
 import type { ExtensionAPI } from "@oh-my-pi/pi-coding-agent";
 import type { Outcome } from "../core/outcome";
@@ -9,6 +10,7 @@ import { join } from "node:path";
 import { model } from "../core/model.gen";
 import { operations } from "../core/operations.gen";
 import { toolOutcome } from "../core/output";
+import { addToSystemPrompt } from "../kit/omp/prompt";
 import { isRemotePane, keepTernPart, ternBinary } from "../kit/omp/tern-part";
 import { registerOperations } from "../kit/omp/tools";
 import { bridgeDir, call } from "./bridge";
@@ -66,6 +68,7 @@ export function ternInOmp(pi: ExtensionAPI, at: Surroundings): void {
 	// The window that answered last; later calls stay there (and on its `state`) while it listens.
 	let window: string | undefined;
 	pi.setLabel("Tern");
+	addToSystemPrompt(pi, async () => model.text("in-tern"));
 	registerOperations(pi, operations, () => ({
 		async lua(input, signal) {
 			const { code, timeout_s: asked } = fieldsOf(input);

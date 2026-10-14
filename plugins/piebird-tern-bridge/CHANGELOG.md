@@ -9,8 +9,9 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 
-- Rule `tern-agents` (always loaded): in Tern, read the `tern` skill before working with panes,
-  tabs, sessions or Tern agents, and keep omp subagents (`task`) apart from Tern agents in panes.
+- In Tern only, a part of every agent's system prompt (`in-tern` in `core/model.ftl`): read the
+  `tern` skill before working with panes, tabs, sessions or Tern agents, and keep omp subagents
+  (`task`) apart from Tern agents in panes.
 - Tool `tern_lua`: run Lua in the Tern window that holds omp's pane, with Tern's window API
   (`cx`): Tern agents in other panes, sessions and layout, block reads, git, SQLite, notebooks,
   boards, browser, settings and toasts. Returns the first value as JSON, waits on a returned
@@ -31,13 +32,15 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   layout and settings through the `tern` CLI and `tern_lua`, with common calls and rules.
 - Every word the model reads from `tern_lua` (its description, its answers, errors and hints) is
   in `core/model.ftl`; [what the model sees](../../docs/model/piebird-tern-bridge.md) shows each,
-  with the rule and the skill. omp approves the tool as code execution.
+  with that part and the skill. omp approves the tool as code execution.
 - Supported hosts: omp, and Tern through omp.
 - README, with a demo video: omp opens a file beside itself, then starts a Tern agent and reads
   its answer.
 
 ### Changed
 
+- The Tern part of the system prompt (was the rule `tern-agents`) reaches agents only inside
+  Tern, from the plugin's omp extension along with `tern_lua`; outside Tern, omp gets none of it.
 - `tern_lua` failing in the plugin's own code tells the model so in the plugin's words
   (`error-crashed` in `core/model.ftl`).
 - Renamed from `tern` to `piebird-tern-bridge`, one name for the folder, `plugin.json`,
@@ -50,8 +53,8 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `echo $TERN_PANE` first) and paths go into the code. Before, a small model guessed at these APIs
   and failed three calls in a row; with them it does the demo's tasks with no failed call.
 - Tern agents are any coding agent in a pane, omp unless the user names another such as Claude
-  Code or Codex, in the rule `tern-agents` and the skill `tern`; the skill says how to start each
-  (`command = "claude"`, `"codex"`) and how to read the reply of an agent other than omp.
+  Code or Codex, in the Tern part of the system prompt and the skill `tern`; the skill says how to
+  start each (`command = "claude"`, `"codex"`) and how to read the reply of an agent other than omp.
 
 ### Fixed
 

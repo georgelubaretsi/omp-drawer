@@ -22,8 +22,8 @@ the same way. Turned off in Tern's settings, it is left alone.
   tool reports a Lua error as an error, and a call that may have run as "outcome unknown".
 - The `tern` skill: the common calls (panes, files, Tern agents, git, layout), the `tern` CLI for
   the rest, and the rules (don't take focus unless asked, close only what you opened).
-- The `tern-agents` rule: in Tern, read the skill first, and keep omp's own subagents apart from
-  Tern agents in panes.
+- In Tern only, a part of every agent's system prompt: read the skill first, and keep omp's own
+  subagents apart from Tern agents in panes. Outside Tern, omp gets none of it.
 
 ## Requirements
 

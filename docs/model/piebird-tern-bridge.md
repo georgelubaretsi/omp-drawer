@@ -11,7 +11,7 @@ Don't edit it: change the catalog or the scenario.
 
 | Step | omp |
 | --- | --- |
-| 1. The session starts | tool `tern_lua` |
+| 1. The session starts | tool `tern_lua`; # Tern |
 | 2. A value back as JSON | result: |
 | 3. Printed output with the result | printed: |
 | 4. A Lua error | error: Lua error: attempt to index nil with 'list' |
@@ -32,7 +32,20 @@ Run Lua in the Tern window that holds this omp's pane, with `cx`: the window API
 | `code` | Luau chunk; `cx`, `state` and `print` are in scope; `return` the value you want back |
 | `timeout_s` | Seconds to wait for the answer (default 130, max 600) |
 
-From [`lua`](../../plugins/piebird-tern-bridge/core/model.ftl#L3), [`lua.code`](../../plugins/piebird-tern-bridge/core/model.ftl#L4), [`lua.timeout_s`](../../plugins/piebird-tern-bridge/core/model.ftl#L5).
+From [`lua`](../../plugins/piebird-tern-bridge/core/model.ftl#L13), [`lua.code`](../../plugins/piebird-tern-bridge/core/model.ftl#L14), [`lua.timeout_s`](../../plugins/piebird-tern-bridge/core/model.ftl#L15).
+
+### Added to the system prompt in omp
+
+```text
+# Tern
+
+- In Tern (`TERM_PROGRAM=tern`), read the `tern` skill before working with panes, tabs, sessions, Tern agents or Tern blocks; use `tern_lua` and the `tern` CLI for them.
+- Two different things are called agents; keep them apart:
+  - **Subagents**: omp's own `task` tool (and eval `agent()`/`workpool`). Work delegated inside this session; results return to you; no pane. The default for delegating work, in Tern or not.
+  - **Tern agents**: coding agents in their own Tern panes (`cx.agents`): omp unless the user names another, such as Claude Code or Codex. Visible to the user, who can talk to them; they keep running after your turn. Start one only when the user asks for an agent in a pane, split or tab, or to work with agents already open in Tern.
+```
+
+From [`in-tern`](../../plugins/piebird-tern-bridge/core/model.ftl#L3).
 
 ## 2. A value back as JSON
 
@@ -50,7 +63,7 @@ result:
 ]
 ```
 
-From [`answer-result`](../../plugins/piebird-tern-bridge/core/model.ftl#L12).
+From [`answer-result`](../../plugins/piebird-tern-bridge/core/model.ftl#L22).
 
 ## 3. Printed output with the result
 
@@ -66,7 +79,7 @@ result:
 2
 ```
 
-From [`answer-result`](../../plugins/piebird-tern-bridge/core/model.ftl#L12), [`answer-printed`](../../plugins/piebird-tern-bridge/core/model.ftl#L9).
+From [`answer-result`](../../plugins/piebird-tern-bridge/core/model.ftl#L22), [`answer-printed`](../../plugins/piebird-tern-bridge/core/model.ftl#L19).
 
 ## 4. A Lua error
 
@@ -78,7 +91,7 @@ The agent calls `tern_lua` with `{"code":"return cx.nope.list()"}`.
 Lua error: attempt to index nil with 'list'
 ```
 
-From [`error-lua-error`](../../plugins/piebird-tern-bridge/core/model.ftl#L29).
+From [`error-lua-error`](../../plugins/piebird-tern-bridge/core/model.ftl#L39).
 
 ## 5. No window holds the pane
 
@@ -90,7 +103,7 @@ The agent calls `tern_lua` with `{"code":"return cx.pane:id()"}`.
 No Tern window holding pane 4 (this omp's TERN_PANE) took the request, even after `tern plugin reload`; the code did not run. Is this pane's session open in a Tern window? Check `tern plugin list` and Tern's log.
 ```
 
-From [`error-unclaimed`](../../plugins/piebird-tern-bridge/core/model.ftl#L32).
+From [`error-unclaimed`](../../plugins/piebird-tern-bridge/core/model.ftl#L42).
 
 ## 6. The window stops answering
 
@@ -102,7 +115,7 @@ The agent calls `tern_lua` with `{"code":"while true do end"}`.
 Outcome unknown: the Tern window that took the request stopped listening (most likely the code ran past Tern's 50 ms plugin budget, or the window closed). The code may have run partly or fully and was NOT retried; check the state it touches before running anything again. Tern's plugins were reloaded, so the next call can run (`state` was reset).
 ```
 
-From [`error-unknown`](../../plugins/piebird-tern-bridge/core/model.ftl#L33).
+From [`error-unknown`](../../plugins/piebird-tern-bridge/core/model.ftl#L43).
 
 ## 7. The Tern half isn't installed yet
 
@@ -114,7 +127,7 @@ The agent calls `tern_lua` with `{"code":"return 1"}`.
 The piebird-tern-bridge Tern plugin is not loaded: its data folder /home/user/Library/Application Support/Tern/plugin-data/piebird-tern-bridge does not exist. omp installs it when it starts in a Tern pane, so if omp just started, try again in a moment. Otherwise install it with: tern plugin install "/home/user/plugins/piebird-tern-bridge/so.stencil.tern" --force. If Tern runs with TERN_CONFIG_DIR, give omp the same value.
 ```
 
-From [`error-not-loaded`](../../plugins/piebird-tern-bridge/core/model.ftl#L31).
+From [`error-not-loaded`](../../plugins/piebird-tern-bridge/core/model.ftl#L41).
 
 ## Skills and rules
 
@@ -181,18 +194,5 @@ You are in Tern when `TERM_PROGRAM=tern`; `$TERN_PANE` is your pane. Tern alread
 - On `waiting_input`, read the pane and ask the user before answering it.
 - Don't take focus unless asked. Close or stop only what you created.
 - macOS: the bridge needs App Nap off for Tern, or a background Tern trips the 50 ms budget. If `tern_lua` says App Nap is on, ask the user to run `defaults write so.stencil.tern NSAppSleepDisabled -bool YES` and restart Tern; don't run it yourself.
-```
-
-### Rule `tern-agents`
-
-In every omp session's system prompt, without its front matter:
-
-```text
-# Tern
-
-- In Tern (`TERM_PROGRAM=tern`), read the `tern` skill before working with panes, tabs, sessions, Tern agents or Tern blocks; use `tern_lua` and the `tern` CLI for them.
-- Two different things are called agents; keep them apart:
-  - **Subagents**: omp's own `task` tool (and eval `agent()`/`workpool`). Work delegated inside this session; results return to you; no pane. The default for delegating work, in Tern or not.
-  - **Tern agents**: coding agents in their own Tern panes (`cx.agents`): omp unless the user names another, such as Claude Code or Codex. Visible to the user, who can talk to them; they keep running after your turn. Start one only when the user asks for an agent in a pane, split or tab, or to work with agents already open in Tern.
 ```
 

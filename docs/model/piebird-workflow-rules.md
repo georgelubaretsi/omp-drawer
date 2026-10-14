@@ -26,6 +26,22 @@ Don't edit it: change the catalog or the scenario.
 - If the user cancels the ask tool and writes instead, keep discussing in plain text.
 - Clear safe default: take it and say so. Agreed work: just continue.
 
+# Think before building
+
+Scale this to the change: two lines for a small fix, a page for a new protocol or data path.
+
+1. Authority: is this already defined or solved? A standard, spec, schema, library, tool,
+   or existing code in this repo. Use it, and hand-write only the gaps.
+2. Property: what must be true when it's done, stated about what users or consumers
+   actually see, not about a stand-in that's easier to check.
+3. Scope: what it must handle (inputs, environments, who acts on it, including hostile
+   actors if relevant) and what it deliberately won't, weighed by likelihood, impact and
+   cost (Proportion, below). Write the non-goals down where reviewers will see them.
+4. Failure modes: for each step, decide the outcome if it fails halfway, runs twice, runs
+   at the same time as itself, gets unexpected input, or times out (skill: failure-classes).
+
+Then check the property directly, and test the failure modes you decided on.
+
 # Proportion
 
 Before acting on any possible problem (one you foresee while building, a
@@ -54,7 +70,7 @@ likely, and what each option gives and takes away, in plain words.
 
 For every correction, whatever its source (a reported bug is one):
 
-1. Weigh it first (rule: proportion). One outside the written scope, or unlikely and minor,
+1. Weigh it first (Proportion, above). One outside the written scope, or unlikely and minor,
    gets a one-line reply with the reason instead of a fix.
 2. Name the class: which general mistake is this one example of? (skill: failure-classes)
 3. Look for the other members of that class in the same work, and fix together the ones that
@@ -70,22 +86,6 @@ Stop and redesign when:
 Write the cause in a few lines and propose a different design or a narrower scope. The main
 agent asks the user before continuing; a subagent stops and reports it to the agent that
 started it.
-
-# Think before building
-
-Scale this to the change: two lines for a small fix, a page for a new protocol or data path.
-
-1. Authority: is this already defined or solved? A standard, spec, schema, library, tool,
-   or existing code in this repo. Use it, and hand-write only the gaps.
-2. Property: what must be true when it's done, stated about what users or consumers
-   actually see, not about a stand-in that's easier to check.
-3. Scope: what it must handle (inputs, environments, who acts on it, including hostile
-   actors if relevant) and what it deliberately won't, weighed by likelihood, impact and
-   cost (rule: proportion). Write the non-goals down where reviewers will see them.
-4. Failure modes: for each step, decide the outcome if it fails halfway, runs twice, runs
-   at the same time as itself, gets unexpected input, or times out (skill: failure-classes).
-
-Then check the property directly, and test the failure modes you decided on.
 
 Read one of these rules when its description fits your work:
 - changelog: Every project keeps a CHANGELOG.md (Keep a Changelog 2.0.0); every change users would notice adds an entry in the same change (/home/user/plugins/piebird-workflow-rules/rules/changelog.md)
@@ -319,20 +319,6 @@ Test: hostile fixtures for each input (traversal paths, shell metacharacters, ov
 and a secret scanner.
 ```
 
-### Rule `ask-for-decisions`
-
-In every omp session's system prompt, without its front matter:
-
-```text
-# Ask for decisions
-
-- Don't ask what you can find out yourself.
-- Explain and discuss in plain text; use the ask tool only for the final pick.
-- Options in plain words: what you get, what you give up.
-- If the user cancels the ask tool and writes instead, keep discussing in plain text.
-- Clear safe default: take it and say so. Agreed work: just continue.
-```
-
 ### Rule `changelog`
 
 In omp's rules list (`changelog`: Every project keeps a CHANGELOG.md (Keep a Changelog 2.0.0); every change users would notice adds an entry in the same change); `rule://changelog` reads its body:
@@ -385,6 +371,111 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ```
 ````
 
+### Rule `piebird-workflow-rules-main`
+
+In the system prompt of omp's main agent, without its front matter:
+
+```text
+# Ask for decisions
+
+- Don't ask what you can find out yourself.
+- Explain and discuss in plain text; use the ask tool only for the final pick.
+- Options in plain words: what you get, what you give up.
+- If the user cancels the ask tool and writes instead, keep discussing in plain text.
+- Clear safe default: take it and say so. Agreed work: just continue.
+```
+
+### Rule `piebird-workflow-rules-reviewer`
+
+In the system prompt of omp's reviewer agent, without its front matter:
+
+```text
+# What to report
+
+Report a finding when acting on it is worth more than it costs. Judge each
+candidate by:
+- Likelihood: how plausibly the problem occurs for the people and systems that
+  actually use this code, given how they use it.
+- Impact: what happens when it occurs, and how hard it is to notice and undo.
+- Cost of the fix: the code, complexity and upkeep it would add.
+
+Report what is likely, or serious when it happens. Leave out problems that
+need circumstances nobody brings about in practice, unless the impact would be
+serious, and wording that is imprecise only in such circumstances. A scope,
+threat model or non-goal the project states wins over this.
+
+Report a shared cause once, not each symptom. For each finding, say how it
+arises in practice, who it affects, and what it costs, so the author can weigh
+it.
+```
+
+### Rule `piebird-workflow-rules`
+
+In the system prompt of every omp agent, without its front matter:
+
+```text
+# Think before building
+
+Scale this to the change: two lines for a small fix, a page for a new protocol or data path.
+
+1. Authority: is this already defined or solved? A standard, spec, schema, library, tool,
+   or existing code in this repo. Use it, and hand-write only the gaps.
+2. Property: what must be true when it's done, stated about what users or consumers
+   actually see, not about a stand-in that's easier to check.
+3. Scope: what it must handle (inputs, environments, who acts on it, including hostile
+   actors if relevant) and what it deliberately won't, weighed by likelihood, impact and
+   cost (Proportion, below). Write the non-goals down where reviewers will see them.
+4. Failure modes: for each step, decide the outcome if it fails halfway, runs twice, runs
+   at the same time as itself, gets unexpected input, or times out (skill: failure-classes).
+
+Then check the property directly, and test the failure modes you decided on.
+
+# Proportion
+
+Before acting on any possible problem (one you foresee while building, a
+review finding, a failing check, a gap in a doc), weigh:
+- Likelihood: how plausibly it occurs for the people and systems that actually
+  use this work, given how they use it.
+- Impact: what happens when it occurs, and how hard it is to notice and undo.
+- Cost: the code, complexity and upkeep that handling it adds.
+
+Match the response:
+- Likely, or serious when it happens: handle it properly.
+- Unlikely and minor: leave it, and say so in one line where reviewers see it.
+  A review finding like this gets a one-line reply with the reason, no code.
+- Unlikely but serious: add a cheap guard; ask the user before an expensive one.
+
+Docs and comments describe what holds for the cases that matter. Avoid
+absolutes; when a claim says more than the work does, narrow the claim.
+
+Work is done when every known remaining issue is unlikely and minor, not when
+nothing more can be found.
+
+When the user has to weigh a tradeoff, say what could go wrong, for whom, how
+likely, and what each option gives and takes away, in plain words.
+
+# Recurring corrections
+
+For every correction, whatever its source (a reported bug is one):
+
+1. Weigh it first (Proportion, above). One outside the written scope, or unlikely and minor,
+   gets a one-line reply with the reason instead of a fix.
+2. Name the class: which general mistake is this one example of? (skill: failure-classes)
+3. Look for the other members of that class in the same work, and fix together the ones that
+   pass the same weighing.
+4. Test the class: use a conformance suite, property-based tests, fixtures covering each
+   member, or fault injection. A test for only the reported example isn't enough.
+5. Say what you did: the class, the members found, and the test.
+
+Stop and redesign when:
+- the same area is corrected a second time, or
+- a fix causes a new correction, or
+- two corrections share a cause.
+Write the cause in a few lines and propose a different design or a narrower scope. The main
+agent asks the user before continuing; a subagent stops and reports it to the agent that
+started it.
+```
+
 ### Rule `project-tooling`
 
 In omp's rules list (`project-tooling`: Use the project's own tools and commands (dev shell, scripts, lockfiles, task runner, CI steps) instead of globally installed tools or ad-hoc commands; how to write AGENTS.md); `rule://project-tooling` reads its body:
@@ -414,108 +505,5 @@ In omp's rules list (`project-tooling`: Use the project's own tools and commands
   Leave mechanical checks to CI and linters.
 - Describe what the project protects, who acts, where data crosses a boundary and what is out
   of scope in `docs/threat-model.md`.
-```
-
-### Rule `proportion-review`
-
-In every omp session's system prompt, without its front matter:
-
-```text
-# What to report
-
-Report a finding when acting on it is worth more than it costs. Judge each
-candidate by:
-- Likelihood: how plausibly the problem occurs for the people and systems that
-  actually use this code, given how they use it.
-- Impact: what happens when it occurs, and how hard it is to notice and undo.
-- Cost of the fix: the code, complexity and upkeep it would add.
-
-Report what is likely, or serious when it happens. Leave out problems that
-need circumstances nobody brings about in practice, unless the impact would be
-serious, and wording that is imprecise only in such circumstances. A scope,
-threat model or non-goal the project states wins over this.
-
-Report a shared cause once, not each symptom. For each finding, say how it
-arises in practice, who it affects, and what it costs, so the author can weigh
-it.
-```
-
-### Rule `proportion`
-
-In every omp session's system prompt, without its front matter:
-
-```text
-# Proportion
-
-Before acting on any possible problem (one you foresee while building, a
-review finding, a failing check, a gap in a doc), weigh:
-- Likelihood: how plausibly it occurs for the people and systems that actually
-  use this work, given how they use it.
-- Impact: what happens when it occurs, and how hard it is to notice and undo.
-- Cost: the code, complexity and upkeep that handling it adds.
-
-Match the response:
-- Likely, or serious when it happens: handle it properly.
-- Unlikely and minor: leave it, and say so in one line where reviewers see it.
-  A review finding like this gets a one-line reply with the reason, no code.
-- Unlikely but serious: add a cheap guard; ask the user before an expensive one.
-
-Docs and comments describe what holds for the cases that matter. Avoid
-absolutes; when a claim says more than the work does, narrow the claim.
-
-Work is done when every known remaining issue is unlikely and minor, not when
-nothing more can be found.
-
-When the user has to weigh a tradeoff, say what could go wrong, for whom, how
-likely, and what each option gives and takes away, in plain words.
-```
-
-### Rule `recurring-corrections`
-
-In every omp session's system prompt, without its front matter:
-
-```text
-# Recurring corrections
-
-For every correction, whatever its source (a reported bug is one):
-
-1. Weigh it first (rule: proportion). One outside the written scope, or unlikely and minor,
-   gets a one-line reply with the reason instead of a fix.
-2. Name the class: which general mistake is this one example of? (skill: failure-classes)
-3. Look for the other members of that class in the same work, and fix together the ones that
-   pass the same weighing.
-4. Test the class: use a conformance suite, property-based tests, fixtures covering each
-   member, or fault injection. A test for only the reported example isn't enough.
-5. Say what you did: the class, the members found, and the test.
-
-Stop and redesign when:
-- the same area is corrected a second time, or
-- a fix causes a new correction, or
-- two corrections share a cause.
-Write the cause in a few lines and propose a different design or a narrower scope. The main
-agent asks the user before continuing; a subagent stops and reports it to the agent that
-started it.
-```
-
-### Rule `think-before-building`
-
-In every omp session's system prompt, without its front matter:
-
-```text
-# Think before building
-
-Scale this to the change: two lines for a small fix, a page for a new protocol or data path.
-
-1. Authority: is this already defined or solved? A standard, spec, schema, library, tool,
-   or existing code in this repo. Use it, and hand-write only the gaps.
-2. Property: what must be true when it's done, stated about what users or consumers
-   actually see, not about a stand-in that's easier to check.
-3. Scope: what it must handle (inputs, environments, who acts on it, including hostile
-   actors if relevant) and what it deliberately won't, weighed by likelihood, impact and
-   cost (rule: proportion). Write the non-goals down where reviewers will see them.
-4. Failure modes: for each step, decide the outcome if it fails halfway, runs twice, runs
-   at the same time as itself, gets unexpected input, or times out (skill: failure-classes).
-
-Then check the property directly, and test the failure modes you decided on.
 ```
 
