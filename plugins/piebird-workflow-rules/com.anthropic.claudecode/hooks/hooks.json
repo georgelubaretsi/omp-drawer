@@ -1,0 +1,4 @@
+{
+	"description": "piebird-workflow-rules's mod: the rules in the context",
+	"modules": ["./register.ts"]
+}

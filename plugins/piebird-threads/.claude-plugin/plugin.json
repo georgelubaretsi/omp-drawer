@@ -1,0 +1,26 @@
+{
+  "name": "piebird-threads",
+  "version": "0.1.0",
+  "description": "Open threads in front of omp's agent: the project's open lines of work, in the folder its .omp/threads.json names, listed before a prompt whenever the list changes; a rule and skill on writing them",
+  "author": {
+    "name": "George Lubaretsi",
+    "email": "george@lubaretsi.com"
+  },
+  "homepage": "https://github.com/georgelubaretsi/piebird/tree/main/plugins/piebird-threads",
+  "repository": "https://github.com/georgelubaretsi/piebird",
+  "license": "MIT",
+  "keywords": [
+    "omp",
+    "threads",
+    "work in progress"
+  ],
+  "hooks": "./com.anthropic.claudecode/hooks/hooks.json",
+  "userConfig": {
+    "folder": {
+      "type": "string",
+      "title": "Threads folder",
+      "description": "The folder of the project's open threads, one .md file each: relative to the project, or absolute. Empty: the folder the project's .omp/threads.json names, if any. Empty (the default here): as your piebird settings files say (~/.agents/piebird/settings.json, and a project's .agents/piebird/settings.json), which every agent reads.",
+      "default": ""
+    }
+  }
+}

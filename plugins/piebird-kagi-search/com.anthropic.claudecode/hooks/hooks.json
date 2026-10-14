@@ -1,0 +1,4 @@
+{
+	"description": "piebird-kagi-search's mod: the Kagi tools, and WebSearch kept out of the way as the search setting says",
+	"modules": ["./register.ts"]
+}

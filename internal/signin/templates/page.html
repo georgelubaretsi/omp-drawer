@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connect {{.Name}} to your agent</title>
+<style>
+  :root { color-scheme: light dark; --accent: #e8a33d; }
+  body { font: 17px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; margin: 0; display: grid; place-items: center; min-height: 100vh; }
+  main { max-width: 34rem; padding: 2rem; }
+  h1 { font-size: 1.6rem; margin: 0 0 .5rem; }
+  ol { padding-left: 1.3rem; }
+  li { margin: 1.2rem 0; }
+  a.button, button { display: inline-block; font: inherit; padding: .55rem 1.1rem; border-radius: .5rem; border: 0; background: var(--accent); color: #1b1b1b; text-decoration: none; cursor: pointer; }
+  input { font: inherit; width: 100%; box-sizing: border-box; padding: .6rem .8rem; border-radius: .5rem; border: 1px solid #8888; margin: .5rem 0; }
+  #status { min-height: 1.5em; font-weight: 600; }
+  #status.error { color: #d33; }
+  #status.done { color: #2a9d4b; }
+  .hint { opacity: .7; font-size: .9em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Connect {{.Name}} to your agent</h1>
+  <p>Your agent searches with your {{.Name}} account. This is needed once on this computer.</p>
+  <ol>
+    <li>
+      <a class="button" href="{{.SourceURL}}" target="_blank" rel="noopener noreferrer">Open my {{.Credential}}</a><br>
+      <span class="hint">Sign in to {{.Name}} there if it asks, then copy your {{.Credential}}.</span>
+    </li>
+    <li>
+      <form id="form">
+        <label for="value">Paste it here:</label>
+        <input id="value" name="value" autocomplete="off" spellcheck="false" autofocus required>
+        <button type="submit">Connect</button>
+      </form>
+    </li>
+  </ol>
+  <p id="status" role="status" aria-live="polite"></p>
+</main>
+<script>
+  const form = document.getElementById("form");
+  const input = document.getElementById("value");
+  const status = document.getElementById("status");
+  let busy = false;
+  function show(text, kind) { status.textContent = text; status.className = kind || ""; }
+  async function connect() {
+    const value = input.value.trim();
+    if (!value || busy) return;
+    busy = true;
+    show("Checking with {{.Name}}…");
+    try {
+      const reply = await fetch(location.pathname, { method: "POST", body: new URLSearchParams({ value }) });
+      const text = await reply.text();
+      if (reply.ok) {
+        form.hidden = true;
+        show("Connected. You can close this tab: your agent carries on.", "done");
+      } else {
+        show(text, "error");
+      }
+    } catch {
+      show("Your agent stopped waiting for this page. Ask it to search again to get a new one.", "error");
+    } finally {
+      busy = false;
+    }
+  }
+  form.addEventListener("submit", event => { event.preventDefault(); connect(); });
+  input.addEventListener("paste", () => setTimeout(connect, 0));
+</script>
+</body>
+</html>

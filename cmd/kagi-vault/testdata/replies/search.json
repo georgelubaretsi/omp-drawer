@@ -1,0 +1,62 @@
+{
+  "output": {
+    "results": [
+      {
+        "title": "The complete guide to Go net/http timeouts",
+        "url": "https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/",
+        "snippet": "Client-side timeouts can be simpler or much more complex, depending which ones you use, but are just as important to prevent leaking resources ...",
+        "date": "2016-06-29"
+      },
+      {
+        "title": "How to set timeout for http.Get() requests in Golang?",
+        "url": "https://stackoverflow.com/questions/16895294/how-to-set-timeout-for-http-get-requests-in-golang",
+        "snippet": "I'm making a URL fetcher in Go and have a list of URLs to fetch. I send http.Get() requests to each URL and obtain their response. Copyresp,fetch_err ...",
+        "date": "2013-10-12"
+      },
+      {
+        "title": "Go http client timeout vs context timeout - Stack Overflow",
+        "url": "https://stackoverflow.com/questions/64129364/go-http-client-timeout-vs-context-timeout",
+        "snippet": "If you want to specialise your deadline/timeout to each request then use context, otherwise if you want 1 timeout for every outbound request then using client timeout is enough. You can also read about it here Specify timeout when tracing HTTP request in Go"
+      },
+      {
+        "title": "net/http",
+        "url": "https://pkg.go.dev/net/http",
+        "snippet": "The url.Error value's Timeout method will report true if the request timed out. When err is nil, resp always contains a non-nil resp.Body."
+      },
+      {
+        "title": "r/golang on Reddit: What is your http.Client Timeout generally set to?",
+        "url": "https://www.reddit.com/r/golang/comments/zoof54/what_is_your_httpclient_timeout_generally_set_to/",
+        "snippet": "When creating an http.Client for production usage interacting with third party APIs, what do you generally recommend for http.Client's Timeout (since ...",
+        "date": "2022-12-18"
+      },
+      {
+        "title": "Don't use Go's default HTTP client (in production)",
+        "url": "https://medium.com/@nate510/don-t-use-go-s-default-http-client-4804cb19f779",
+        "snippet": "Client configures a timeout that short-circuits long-running connections. The default for this value is 0, which is interpreted as “no timeout”.",
+        "date": "2017-01-09"
+      },
+      {
+        "title": "Tuning the HTTP Client in Go - Medium",
+        "url": "https://medium.com/@indrajeetmishra121/tuning-the-http-client-in-go-8c6062f851d",
+        "snippet": "Use http client level timeout so that your server doesn’t hang if the hosts you are send your request to are taking long time. Example of setting http client timeout is shown below."
+      },
+      {
+        "title": "️ Set HTTP client timeout in Go",
+        "url": "https://gosamples.dev/http-client-timeout/",
+        "snippet": "An HTTP client timeout is a time limit in which the server must process the request and return the response. If the set timeout is exceeded, the ...",
+        "date": "2022-08-30"
+      },
+      {
+        "title": "HTTP client timeout vs request context deadline",
+        "url": "https://gist.github.com/jcchavezs/ad7954cc1734e86a405da74250808390",
+        "snippet": "HTTP client timeout vs request context deadline. var timeout = 10 * time.Millisecond"
+      },
+      {
+        "title": "Diving into Go's HTTP server timeouts | adam-p",
+        "url": "https://adam-p.ca/blog/2022/01/golang-http-server-timeouts/",
+        "snippet": "A timeout during header or body read means that there's no response to the client. This is unfortunate but expected. A timeout during header ...",
+        "date": "2022-01-15"
+      }
+    ]
+  }
+}

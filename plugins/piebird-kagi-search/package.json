@@ -1,0 +1,40 @@
+{
+  "name": "piebird-kagi-search",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kagi web search for coding agents, with your own Kagi account",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgelubaretsi/piebird.git",
+    "directory": "plugins/piebird-kagi-search"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "bun test ./test",
+    "typecheck": "tsc --noEmit && tsc -p com.anthropic.claudecode"
+  },
+  "devDependencies": {
+    "@oh-my-pi/pi-coding-agent": "18.8.9",
+    "@oh-my-pi/pi-utils": "18.8.9",
+    "@types/bun": "1.4.0",
+    "typescript": "5.9.3"
+  },
+  "omp": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "settings": {
+      "search": {
+        "type": "enum",
+        "description": "How much your agent relies on Kagi when it searches the web. \"shared\" (the default here): as your piebird settings files say (~/.agents/piebird/settings.json, and a project's .agents/piebird/settings.json), which every agent reads. \"only\": Kagi only. Every web search goes through Kagi. The agent's own web search is refused, even when Kagi fails, and the agent is told not to use other search tools. \"first\": Kagi first. The agent searches with Kagi. Its own web search stays out of the way until a Kagi search fails in the conversation; other search tools are for when Kagi fails or when you ask for one. \"offered\": Kagi offered. Kagi is one more way to search. Nothing is refused or hidden, and the agent picks.",
+        "values": [
+          "shared",
+          "only",
+          "first",
+          "offered"
+        ],
+        "default": "shared"
+      }
+    }
+  }
+}

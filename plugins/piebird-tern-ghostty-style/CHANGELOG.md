@@ -1,0 +1,24 @@
+# Changelog
+
+All notable changes to this plugin are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
+and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Tern plugin `piebird-tern-ghostty-style` (folder `so.stencil.tern/`), a look: style sheets that draw
+  omp's chat in Tern's Reader chat style the way omp looks in Ghostty: one box per tool call
+  with its heading (title, intent) inside, eval cells included; thoughts left open under their
+  "Thought for Ns" line; bash as `$ command`; diffs with one line-number column; your messages
+  as full-width bars, denser replies and text in omp dark-arctic's colours. Outside omp,
+  rendered Markdown in file panes gets a column up to 1200px instead of Tern's 832px, so wide
+  tables and diagrams aren't cut while the pane stays empty around them. It needs Tern 0.7.1 or
+  later.
+- omp installs the look: when omp starts as the main agent in a local Tern pane, it installs
+  the Tern plugin if Tern lacks it, replaces a copy of another version (after a plugin upgrade),
+  and says so in the chat. A linked copy and one turned off in Tern's settings are left alone.
+- Supported hosts: omp, and Tern through omp.
+- README, with a demo video: the same omp session in Tern's own look, then in this one.

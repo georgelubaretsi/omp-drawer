@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../tools/settings.schema.json",
+  "settings": {
+    "folder": {
+      "type": "path",
+      "title": "Threads folder",
+      "about": "The folder of the project's open threads, one .md file each: relative to the project, or absolute. Empty: the folder the project's .omp/threads.json names, if any.",
+      "default": ""
+    }
+  }
+}

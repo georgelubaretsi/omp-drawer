@@ -1,0 +1,50 @@
+{
+  "output": {
+    "batches": [
+      {
+        "query": "go http client timeout",
+        "results": [
+          {
+            "title": "The complete guide to Go net/http timeouts",
+            "url": "https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/",
+            "snippet": "Client-side timeouts can be simpler or much more complex, depending which ones you use, but are just as important to prevent leaking resources ...",
+            "date": "2016-06-29"
+          },
+          {
+            "title": "How to set timeout for http.Get() requests in Golang?",
+            "url": "https://stackoverflow.com/questions/16895294/how-to-set-timeout-for-http-get-requests-in-golang",
+            "snippet": "I'm making a URL fetcher in Go and have a list of URLs to fetch. I send http.Get() requests to each URL and obtain their response. Copyresp,fetch_err ...",
+            "date": "2013-10-12"
+          },
+          {
+            "title": "Go http client timeout vs context timeout - Stack Overflow",
+            "url": "https://stackoverflow.com/questions/64129364/go-http-client-timeout-vs-context-timeout",
+            "snippet": "If you want to specialise your deadline/timeout to each request then use context, otherwise if you want 1 timeout for every outbound request then using client timeout is enough. You can also read about it here Specify timeout when tracing HTTP request in Go"
+          }
+        ]
+      },
+      {
+        "query": "go context deadline",
+        "results": [
+          {
+            "title": "The complete guide to Go net/http timeouts",
+            "url": "https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/",
+            "snippet": "Client-side timeouts can be simpler or much more complex, depending which ones you use, but are just as important to prevent leaking resources ...",
+            "date": "2016-06-29"
+          },
+          {
+            "title": "How to set timeout for http.Get() requests in Golang?",
+            "url": "https://stackoverflow.com/questions/16895294/how-to-set-timeout-for-http-get-requests-in-golang",
+            "snippet": "I'm making a URL fetcher in Go and have a list of URLs to fetch. I send http.Get() requests to each URL and obtain their response. Copyresp,fetch_err ...",
+            "date": "2013-10-12"
+          },
+          {
+            "title": "Go http client timeout vs context timeout - Stack Overflow",
+            "url": "https://stackoverflow.com/questions/64129364/go-http-client-timeout-vs-context-timeout",
+            "snippet": "If you want to specialise your deadline/timeout to each request then use context, otherwise if you want 1 timeout for every outbound request then using client timeout is enough. You can also read about it here Specify timeout when tracing HTTP request in Go"
+          }
+        ]
+      }
+    ]
+  }
+}

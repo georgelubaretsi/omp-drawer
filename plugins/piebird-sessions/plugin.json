@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "piebird-sessions",
+  "version": "0.1.0",
+  "description": "Read coding agents' session journals (omp, Claude Code, Codex): a session_read tool that reads, pages and searches a session by id and line, with asks shown in full, and the agent told its own session id",
+  "author": {
+    "name": "George Lubaretsi",
+    "email": "george@lubaretsi.com"
+  },
+  "homepage": "https://github.com/georgelubaretsi/piebird/tree/main/plugins/piebird-sessions",
+  "repository": "https://github.com/georgelubaretsi/piebird",
+  "license": "MIT",
+  "keywords": [
+    "omp",
+    "claude-code",
+    "codex",
+    "sessions",
+    "journal"
+  ]
+}

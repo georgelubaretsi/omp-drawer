@@ -1,0 +1,8 @@
+{
+  "error": {
+    "id": "empty-query",
+    "variables": {
+      "query": " "
+    }
+  }
+}

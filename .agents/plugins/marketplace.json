@@ -1,17 +1,53 @@
 {
-  "name": "omp-drawer",
+  "name": "piebird",
   "plugins": [
     {
-      "name": "kagi",
+      "name": "piebird-kagi-search",
       "source": {
         "source": "local",
-        "path": "./plugins/kagi"
+        "path": "./plugins/piebird-kagi-search"
       },
       "policy": {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL"
       },
       "category": "search"
+    },
+    {
+      "name": "piebird-sessions",
+      "source": {
+        "source": "local",
+        "path": "./plugins/piebird-sessions"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "development"
+    },
+    {
+      "name": "piebird-threads",
+      "source": {
+        "source": "local",
+        "path": "./plugins/piebird-threads"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "productivity"
+    },
+    {
+      "name": "piebird-workflow-rules",
+      "source": {
+        "source": "local",
+        "path": "./plugins/piebird-workflow-rules"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "productivity"
     }
   ]
 }

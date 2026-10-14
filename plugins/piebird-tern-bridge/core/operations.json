@@ -1,0 +1,23 @@
+{
+  "$schema": "../../../tools/operations.schema.json",
+  "operations": {
+    "lua": {
+      "input": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "timeout_s": { "type": "number" }
+        },
+        "required": ["code"],
+        "additionalProperties": false
+      },
+      "output": {
+        "type": "object",
+        "properties": { "pane": { "type": "integer" }, "ok": { "type": "boolean" } },
+        "required": ["pane", "ok"]
+      },
+      "errors": ["lua-error", "cancelled", "not-loaded", "unclaimed", "unknown", "too-large"],
+      "tool": { "name": "tern_lua", "alwaysLoad": true, "runsCode": true }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "id": "dates-order",
+    "variables": {
+      "from": "2026-10-12",
+      "to": "2026-10-01"
+    }
+  }
+}

@@ -8,8 +8,6 @@ export interface PluginDir {
 	base: string;
 	/** Absolute path. */
 	path: string;
-	/** Plugin-relative paths this build generates in the folder (e.g. bin/launcher); they count as bundled. */
-	generated?: ReadonlySet<string>;
 }
 
 /**

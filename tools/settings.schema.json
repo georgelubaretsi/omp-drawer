@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A plugin's settings and secrets: plugins/<name>/core/settings.json",
+  "description": "Everything a person sets for a plugin, in one place, the same in every agent: settings, each a choice, text or path, and secrets, each a credential kept in the system's secret store with the environment variable that may supply it instead. Keys are the property names. Lengths and shapes follow what every agent's settings screen takes: Claude Code's userConfig options are plain labels of 1 to 64 characters.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "settings": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/key" },
+      "additionalProperties": { "$ref": "#/$defs/setting" }
+    },
+    "secrets": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/key" },
+      "additionalProperties": { "$ref": "#/$defs/secret" }
+    }
+  },
+  "$defs": {
+    "key": {
+      "description": "Lowercase words joined by _: the same key in settings.json, the shared file and each agent's settings.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+      "maxLength": 64
+    },
+    "text": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "setting": {
+      "description": "A choice among fixed values, a text, or a path. A path in a settings file is relative to the folder holding .agents/ (the project, or the home folder) unless absolute.",
+      "type": "object",
+      "required": ["type"],
+      "discriminator": { "propertyName": "type" },
+      "oneOf": [{ "$ref": "#/$defs/choice" }, { "$ref": "#/$defs/free" }]
+    },
+    "choice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "title", "about", "default", "choices"],
+      "properties": {
+        "type": { "const": "choice" },
+        "title": { "$ref": "#/$defs/title" },
+        "about": { "$ref": "#/$defs/text" },
+        "default": { "type": "string" },
+        "choices": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["value", "label", "means"],
+            "properties": {
+              "value": {
+                "description": "Stored and passed around. `shared` is the value an agent's own setting has when it follows the shared one.",
+                "$ref": "#/$defs/key",
+                "not": { "const": "shared" }
+              },
+              "label": { "$ref": "#/$defs/title" },
+              "means": { "$ref": "#/$defs/text" }
+            }
+          }
+        }
+      }
+    },
+    "free": {
+      "description": "A text or a path. An agent's own empty value follows the shared one.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "title", "about", "default"],
+      "properties": {
+        "type": { "enum": ["text", "path"] },
+        "title": { "$ref": "#/$defs/title" },
+        "about": { "$ref": "#/$defs/text" },
+        "default": { "type": "string" }
+      }
+    },
+    "secret": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "about"],
+      "properties": {
+        "title": { "$ref": "#/$defs/title" },
+        "about": { "$ref": "#/$defs/text" },
+        "env": {
+          "description": "The environment variable that supplies the secret instead of the secret store, for CI and containers.",
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "../../../tools/operations.schema.json",
+  "operations": {
+    "read": {
+      "input": {
+        "type": "object",
+        "properties": {
+          "session": { "type": "string" },
+          "line": { "type": "integer", "minimum": 1 },
+          "before": { "type": "integer", "minimum": 1 },
+          "after": { "type": "integer", "minimum": 1 },
+          "find": { "type": "string" },
+          "user": { "type": "boolean" },
+          "thinking": { "type": "boolean" },
+          "tools": { "type": "boolean" },
+          "raw": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      },
+      "output": { "type": "object" },
+      "errors": [
+        "not-found",
+        "ambiguous",
+        "past-end",
+        "before-without-line",
+        "find-with-page",
+        "list-with-params",
+        "user-with-details",
+        "bad-argument"
+      ],
+      "tool": { "name": "session_read", "readOnly": true, "alwaysLoad": true }
+    }
+  }
+}

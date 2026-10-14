@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "piebird-agent-variants",
+  "version": "0.1.0",
+  "description": "Create temporary project-scoped agent variants with explicit model routing",
+  "author": {
+    "name": "George Lubaretsi",
+    "email": "george@lubaretsi.com"
+  },
+  "homepage": "https://github.com/georgelubaretsi/piebird/tree/main/plugins/piebird-agent-variants",
+  "repository": "https://github.com/georgelubaretsi/piebird",
+  "license": "MIT",
+  "keywords": [
+    "agents",
+    "models",
+    "omp"
+  ]
+}

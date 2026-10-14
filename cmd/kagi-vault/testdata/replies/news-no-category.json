@@ -1,0 +1,9 @@
+{
+  "error": {
+    "id": "no-category",
+    "variables": {
+      "count": 3,
+      "want": "astrology"
+    }
+  }
+}

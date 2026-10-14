@@ -1,0 +1,18 @@
+{
+  "description": "piebird-sessions's hook: a line in the context naming this session",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "^(startup|resume|clear|compact)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${PLUGIN_ROOT}/native/piebird-sessions\" hook",
+            "commandWindows": "\"${PLUGIN_ROOT}\\native\\piebird-sessions.exe\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

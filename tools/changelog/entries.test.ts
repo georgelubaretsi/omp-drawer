@@ -20,7 +20,7 @@ const OTHER = [
 	"plugins/plugins/tern/plugin.json",
 	"plugins/plugins/workflow/plugin.json",
 	"plugins/plugins/agent-variants/plugin.json",
-	"tools/lint.sh",
+	"tools/lint.ts",
 ];
 const MISSING_ROOT = `the workspace: ${ROOT} is missing; the workspace keeps one, with an entry under [Unreleased]`;
 const MISSING_TERN = `plugin tern: ${TERN} is missing; a plugin keeps one while its folder has files, with an entry under [Unreleased]`;
@@ -34,8 +34,8 @@ describe("ownerOf", () => {
 		expect(ownerOf("plugins/catalog.json")).toBe(PUBLIC);
 		expect(ownerOf("plugins/CHANGELOG.md")).toBe(PUBLIC);
 		expect(ownerOf("plugins")).toBe(ROOT);
-		expect(ownerOf("tools/lint.sh")).toBe(ROOT);
-		expect(ownerOf("config/install.sh")).toBe(ROOT);
+		expect(ownerOf("tools/lint.ts")).toBe(ROOT);
+		expect(ownerOf("config/install.ts")).toBe(ROOT);
 		expect(ownerOf("CHANGELOG.md")).toBe(ROOT);
 	});
 });
@@ -93,7 +93,7 @@ describe("missingEntries: the public repo's changelog", () => {
 		},
 		{
 			name: "config change with a public repo entry only",
-			changes: [M("config/install.sh"), M(PUBLIC)],
+			changes: [M("config/install.ts"), M(PUBLIC)],
 			staged: { [PUBLIC]: log("old", "new"), [ROOT]: log("old") },
 			errors: [`the workspace: no new entry under [Unreleased] in ${ROOT}`],
 		},
@@ -159,14 +159,14 @@ describe("missingEntries: entries", () => {
 		},
 		{
 			name: "workspace change without an entry",
-			changes: [M("tools/lint.sh")],
+			changes: [M("tools/lint.ts")],
 			staged: { [ROOT]: log("old") },
 			errors: [`the workspace: no new entry under [Unreleased] in ${ROOT}`],
 		},
 		{ name: "changelog-only change", changes: [M(TERN)], staged: { [TERN]: log() }, errors: [] },
 		{
 			name: "two things changed, one entry",
-			changes: [M("plugins/plugins/tern/src/a.ts"), M(TERN), M("tools/lint.sh")],
+			changes: [M("plugins/plugins/tern/src/a.ts"), M(TERN), M("tools/lint.ts")],
 			staged: { [TERN]: log("old", "new"), [ROOT]: log("old") },
 			errors: [`the workspace: no new entry under [Unreleased] in ${ROOT}`],
 		},
@@ -196,7 +196,7 @@ describe("missingEntries: entries", () => {
 		},
 		{
 			name: "opted out: no entry needed",
-			changes: [M("plugins/plugins/tern/src/a.ts"), M("tools/lint.sh")],
+			changes: [M("plugins/plugins/tern/src/a.ts"), M("tools/lint.ts")],
 			staged: { [TERN]: log("old"), [ROOT]: log("old") },
 			optedOut: true,
 			errors: [],
@@ -243,7 +243,7 @@ describe("missingEntries: required changelogs", () => {
 		{ name: "root changelog deleted", changes: [D(ROOT)], staged: {}, errors: [MISSING_ROOT] },
 		{
 			name: "root changelog deleted, opted out",
-			changes: [D(ROOT), M("tools/lint.sh")],
+			changes: [D(ROOT), M("tools/lint.ts")],
 			staged: {},
 			optedOut: true,
 			errors: [MISSING_ROOT],

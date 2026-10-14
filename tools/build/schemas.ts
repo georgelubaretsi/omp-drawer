@@ -1,14 +1,21 @@
 // The schemas sources are validated against: the Agent Plugins 1.0.0 schemas vendored in
 // reference/agent-plugins/1.0.0/ (refreshed by `bun tools/sync-references.ts agent-plugins`),
-// tools/catalog.schema.json and tools/skill-frontmatter.schema.json.
+// tools/catalog.schema.json, tools/skill-frontmatter.schema.json, tools/settings.schema.json and
+// tools/operations.schema.json.
 import Ajv2020, { type ErrorObject } from "ajv/dist/2020";
 import mcpSchema from "../../reference/agent-plugins/1.0.0/mcp.schema.json" with { type: "json" };
 import pluginSchema from "../../reference/agent-plugins/1.0.0/plugin.schema.json" with { type: "json" };
 import catalogSchema from "../catalog.schema.json" with { type: "json" };
+import operationsSchema from "../operations.schema.json" with { type: "json" };
+import settingsSchema from "../settings.schema.json" with { type: "json" };
 import skillSchema from "../skill-frontmatter.schema.json" with { type: "json" };
-import { located, pointerToken } from "./json";
+import { type JsonObject, located, pointerToken } from "./json";
 
-export const HOSTS = ["omp", "claude", "codex"] as const;
+/** The hosts the build writes a marketplace for. */
+export const MARKET_HOSTS = ["omp", "claude", "codex"] as const;
+export type MarketHost = (typeof MARKET_HOSTS)[number];
+/** Every host a catalog entry may list. Tern has no marketplace: omp installs a plugin's Tern part (tern.ts). */
+export const HOSTS = [...MARKET_HOSTS, "tern"] as const;
 export type Host = (typeof HOSTS)[number];
 
 export const PLUGIN_SCHEMA = pluginSchema.$id;
@@ -18,6 +25,10 @@ export interface CatalogEntry {
 	name: string;
 	category: string;
 	hosts: Host[];
+	/** Hosts whose part is still in development: left out of the manifest that host reads (host-parts.ts). */
+	development?: Host[];
+	/** The plugin's native program, built from cmd/<program>/ (native.ts); none when absent. */
+	program?: string;
 }
 
 const ajv = new Ajv2020({ allErrors: true, verbose: true, discriminator: true });
@@ -36,6 +47,45 @@ export const validateMcp = ajv.compile({
 export const validateCatalog = ajv.compile<{ plugins: CatalogEntry[] }>(catalogSchema);
 export const validateName = ajv.compile(catalogSchema.$defs.name);
 export const validateSkill = ajv.compile(skillSchema);
+/** A setting in a plugin's core/settings.json, as tools/settings.schema.json shapes it. */
+export type SettingDeclaration =
+	| {
+			type: "choice";
+			title: string;
+			about: string;
+			default: string;
+			choices: { value: string; label: string; means: string }[];
+	  }
+	| { type: "text" | "path"; title: string; about: string; default: string };
+/** A plugin's core/settings.json: its settings and secrets (each a title, about and env). */
+export interface SettingsFile {
+	settings?: Record<string, SettingDeclaration>;
+	secrets?: Record<string, { title: string; about: string; env?: string }>;
+}
+export const validateSettings = ajv.compile<SettingsFile>(settingsSchema);
+/** A tool's MCP annotations and Claude Code's alwaysLoad, as tools/operations.schema.json shapes them. */
+export interface ToolDeclaration {
+	name: string;
+	readOnly?: boolean;
+	destructive?: boolean;
+	idempotent?: boolean;
+	openWorld?: boolean;
+	alwaysLoad?: boolean;
+	runsCode?: boolean;
+}
+/** One operation in a plugin's core/operations.json. */
+export interface OperationDeclaration {
+	input: JsonObject;
+	output: JsonObject;
+	errors?: string[];
+	vault?: boolean;
+	tool?: ToolDeclaration;
+}
+/** A plugin's core/operations.json. */
+export interface OperationsFile {
+	operations: Record<string, OperationDeclaration>;
+}
+export const validateOperations = ajv.compile<OperationsFile>(operationsSchema);
 export const validateServer = ajv.compile({ $ref: `${MCP_SCHEMA}#/$defs/server` });
 
 /** The value the message names, for the keywords whose message leaves it out. */

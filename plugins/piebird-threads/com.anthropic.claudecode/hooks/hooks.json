@@ -1,0 +1,4 @@
+{
+	"description": "piebird-threads's mod: the threads rule and the project's open threads in the context",
+	"modules": ["./register.ts"]
+}

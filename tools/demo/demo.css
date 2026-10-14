@@ -1,0 +1,4 @@
+/* Demo windows hide the account picture: a demo shows the plugin, not who recorded it. */
+button.tn-peers {
+	display: none !important;
+}

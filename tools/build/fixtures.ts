@@ -41,10 +41,26 @@ export const CATALOG = {
 export const MANIFEST = { $schema: PLUGIN_SCHEMA, name: "demo", version: "1.0.0", description: "Demo plugin" };
 /** A changelog with only an empty Unreleased section, valid for any version. */
 export const CHANGELOG = "# Changelog\n\n## [Unreleased]\n";
+/** A plugin's core/settings.json declaring the setting `mode` and the secret `token`, with its env var. */
+export const SETTINGS = {
+	settings: {
+		mode: {
+			type: "choice",
+			title: "Mode",
+			about: "How much the agent relies on this.",
+			default: "first",
+			choices: [
+				{ value: "only", label: "Only this", means: "Nothing else." },
+				{ value: "first", label: "This first", means: "Others when this fails." },
+			],
+		},
+	},
+	secrets: { token: { title: "Demo token", about: "Signs in to the demo service.", env: "DEMO_TOKEN" } },
+};
 
 /** A source tree with one plugin "demo" for the given hosts. */
 export async function tree(hosts: string[]): Promise<string> {
-	const root = await mkdtemp(join(tmpdir(), "omp-drawer-build-"));
+	const root = await mkdtemp(join(tmpdir(), "piebird-build-"));
 	track(root);
 	await put(root, "catalog.json", { ...CATALOG, plugins: [{ name: "demo", category: "development", hosts }] });
 	await put(root, "plugins/demo/plugin.json", MANIFEST);

@@ -159,7 +159,7 @@ describe("catalog.json", () => {
 			name: "unknown host",
 			value: { ...CATALOG, plugins: [{ ...entry, hosts: ["cursor"] }] },
 			errors: [
-				'catalog.json: /plugins/0/hosts/0 must be equal to one of the allowed values: "omp", "claude", "codex"',
+				'catalog.json: /plugins/0/hosts/0 must be equal to one of the allowed values: "omp", "claude", "codex", "tern"',
 			],
 		},
 		{
@@ -196,7 +196,7 @@ describe("catalog.json", () => {
 		});
 	}
 
-	test("schema hosts are the hosts build.ts generates for", () => {
+	test("schema hosts are the hosts the catalog may list", () => {
 		expect(catalogSchema.properties.plugins.items.properties.hosts.items.enum).toEqual([...HOSTS]);
 	});
 });

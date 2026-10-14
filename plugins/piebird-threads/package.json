@@ -1,0 +1,34 @@
+{
+  "name": "piebird-threads",
+  "version": "0.1.0",
+  "description": "Open threads in front of omp's agent: the project's open lines of work, in the folder its .omp/threads.json names, listed before a prompt whenever the list changes; a rule and skill on writing them",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgelubaretsi/piebird.git",
+    "directory": "plugins/piebird-threads"
+  },
+  "scripts": {
+    "test": "bun test ./test",
+    "typecheck": "tsc --noEmit && tsc -p com.anthropic.claudecode"
+  },
+  "devDependencies": {
+    "@oh-my-pi/pi-coding-agent": "18.8.9",
+    "@oh-my-pi/pi-utils": "18.8.9",
+    "@types/bun": "1.4.0",
+    "typescript": "5.9.3"
+  },
+  "omp": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "settings": {
+      "folder": {
+        "type": "string",
+        "description": "The folder of the project's open threads, one .md file each: relative to the project, or absolute. Empty: the folder the project's .omp/threads.json names, if any. Empty (the default here): as your piebird settings files say (~/.agents/piebird/settings.json, and a project's .agents/piebird/settings.json), which every agent reads.",
+        "default": ""
+      }
+    }
+  }
+}

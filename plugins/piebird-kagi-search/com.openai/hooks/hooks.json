@@ -1,0 +1,18 @@
+{
+  "description": "piebird-kagi-search's hook: web.run doesn't search while the Kagi tools work",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^webrun$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${PLUGIN_ROOT}/native/piebird-kagi-search\" hook",
+            "commandWindows": "\"${PLUGIN_ROOT}\\native\\piebird-kagi-search.exe\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,11 +1,16 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { existsSync } from "node:fs";
 import { chmod, mkdir, mkdtemp, readFile, realpath } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
-import { cleanup, MANIFEST, put, track, tree } from "./fixtures";
+import { CATALOG, cleanup, MANIFEST, put, SETTINGS, track, tree } from "./fixtures";
 import { isObject, type JsonObject } from "./json";
 import { build } from "./output";
 import { HOSTS, MCP_SCHEMA } from "./schemas";
+import { TERN_DIR } from "./tern";
+
+const MACOS_TERN = "/Applications/Tern.app/Contents/MacOS/tern";
+const TERN = Bun.which("tern") ?? (existsSync(MACOS_TERN) ? MACOS_TERN : undefined);
 
 afterEach(cleanup);
 
@@ -37,7 +42,11 @@ async function runIsolated(
 	return { code, stdout, stderr };
 }
 
-/** A built tree whose one plugin lists every host and uses every metadata field, a skill and every MCP shape Claude Code gets; plus a state folder. */
+/**
+ * A built tree whose one plugin lists every host and uses every metadata field, a skill, every MCP
+ * shape Claude Code gets, a mod, and a program with a setting (userConfig, and its choice passed to
+ * the program's server); plus a state folder.
+ */
 async function consumerTree(): Promise<{ root: string; state: string }> {
 	const root = await tree([...HOSTS]);
 	await put(root, "plugins/demo/plugin.json", {
@@ -54,6 +63,26 @@ async function consumerTree(): Promise<{ root: string; state: string }> {
 		"---\nname: demo\ndescription: Does demo things\n---\n\nBody\n",
 	);
 	await put(root, "plugins/demo/bin/server", "#!/bin/sh\n");
+	await put(
+		root,
+		`plugins/demo/${TERN_DIR}/plugin.toml`,
+		'schema = 1\nid = "demo"\nname = "Demo"\nversion = "1.0.0"\nwindow = "window.luau"\n',
+	);
+	await put(root, `plugins/demo/${TERN_DIR}/window.luau`, "-- demo\n");
+	await put(root, "plugins/demo/com.anthropic.claudecode/hooks/hooks.json", { modules: ["./register.ts"] });
+	await put(
+		root,
+		"plugins/demo/com.anthropic.claudecode/hooks/register.ts",
+		"export function register(on) {\n\ton('session.start', async ($, e, next) => next(e))\n}\n",
+	);
+	await put(root, "catalog.json", {
+		...CATALOG,
+		plugins: [{ name: "demo", category: "development", hosts: [...HOSTS], program: "demo" }],
+	});
+	await put(root, "cmd/demo/main.go", "package main\n");
+	await put(root, "plugins/demo/native/demo", "#!/bin/sh\n");
+	await chmod(join(root, "plugins/demo/native/demo"), 0o755);
+	await put(root, "plugins/demo/core/settings.json", SETTINGS);
 	await put(root, "plugins/demo/mcp.json", {
 		$schema: MCP_SCHEMA,
 		mcpServers: {
@@ -64,12 +93,13 @@ async function consumerTree(): Promise<{ root: string; state: string }> {
 				env: { CACHE: "${PLUGIN_DATA}/cache" },
 			},
 			bare: { type: "stdio", command: "uvx" },
+			program: { type: "stdio", command: "./native/demo", args: ["mcp"] },
 			remote: { type: "streamable-http", url: "https://example.com/mcp", headers: { "X-Tenant": "public" } },
 			events: { type: "sse", url: "https://example.com/sse" },
 		},
 	});
 	await build(root);
-	const state = await mkdtemp(join(tmpdir(), "omp-drawer-consumer-"));
+	const state = await mkdtemp(join(tmpdir(), "piebird-consumer-"));
 	track(state);
 	await mkdir(join(state, "home"));
 	return { root, state };
@@ -105,7 +135,7 @@ describe("generated catalogs in their consumers (skipped when the CLI is missing
 	);
 
 	test.skipIf(!Bun.which("claude"))(
-		"claude plugin validate --strict passes the marketplace, the plugin and its .mcp.json",
+		"claude plugin validate --strict passes the marketplace, the plugin, its .mcp.json and its mod",
 		async () => {
 			const { root, state } = await consumerTree();
 			const env = { CLAUDE_CONFIG_DIR: join(state, "claude") };
@@ -120,6 +150,11 @@ describe("generated catalogs in their consumers (skipped when the CLI is missing
 					success: true,
 					findings: [],
 				});
+				if (target === root) continue;
+				// The hooks file the generated manifest names, read with its module.
+				expect(parts.flatMap(part => (Array.isArray(part.notes) ? part.notes : []))).toContain(
+					"./register.ts hooks: session.start",
+				);
 			}
 		},
 		60_000,
@@ -162,7 +197,7 @@ describe("generated catalogs in their consumers (skipped when the CLI is missing
 			};
 			await put(root, "plugins/demo/.mcp.json", generated);
 
-			const state = await mkdtemp(join(tmpdir(), "omp-drawer-consumer-"));
+			const state = await mkdtemp(join(tmpdir(), "piebird-consumer-"));
 			track(state);
 			await mkdir(join(state, "home"));
 			const env = { CLAUDE_CONFIG_DIR: join(state, "claude") };
@@ -195,12 +230,33 @@ describe("generated catalogs in their consumers (skipped when the CLI is missing
 		"omp discovers the plugin from .omp-plugin/marketplace.json",
 		async () => {
 			const { root, state } = await consumerTree();
-			// omp keeps its state in HOME/.omp.
+			// omp keeps its state in HOME/.omp. A failure shows what omp said.
 			const add = await runIsolated(["omp", "plugin", "marketplace", "add", root], state, {});
-			expect(add.code).toBe(0);
+			expect({ code: add.code, stderr: add.stderr }).toMatchObject({ code: 0 });
 			const discover = await runIsolated(["omp", "plugin", "discover"], state, {});
-			expect(discover.code).toBe(0);
+			expect({ code: discover.code, stderr: discover.stderr }).toMatchObject({ code: 0 });
 			expect(discover.stdout).toMatch(/^\s*demo@1\.0\.0\n\s*Demo plugin$/m);
+		},
+		60_000,
+	);
+});
+
+describe("the Tern part in Tern (skipped when Tern is missing)", () => {
+	test.skipIf(!TERN)(
+		"tern links the plugin's Tern part from so.stencil.tern",
+		async () => {
+			const { root, state } = await consumerTree();
+			// A short socket path: Unix sockets cap their length, and macOS temp folders are long.
+			const short = await mkdtemp("/tmp/odc-");
+			track(short);
+			const env = { TERN_CONFIG_DIR: join(state, "tern"), TERN_DAEMON_SOCKET: join(short, "d.sock") };
+			const part = join(root, "plugins/demo", TERN_DIR);
+			const r = await runIsolated([TERN ?? "", "plugin", "link", part, "--json"], state, env);
+			const linked: unknown = JSON.parse(r.stdout);
+			expect({ code: r.code, linked }).toEqual({
+				code: 0,
+				linked: { id: "demo", version: "1.0.0", dir: await realpath(part) },
+			});
 		},
 		60_000,
 	);

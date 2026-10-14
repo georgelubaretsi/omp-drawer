@@ -138,11 +138,18 @@ function claudeServer(raw: JsonObject): JsonObject {
 	return server;
 }
 
-/** Translates an Agent Plugins mcp.json into Claude Code's .mcp.json shape; claudeProblems has rejected what Claude Code can't take. */
+/**
+ * Translates an Agent Plugins mcp.json into Claude Code's .mcp.json shape; claudeProblems has
+ * rejected what Claude Code can't take.
+ */
 export function claudeMcp(mcp: JsonObject): JsonObject {
 	const servers: JsonObject = {};
 	for (const [name, raw] of Object.entries(isObject(mcp.mcpServers) ? mcp.mcpServers : {})) {
-		servers[name] = isObject(raw) ? claudeServer(raw) : raw;
+		if (!isObject(raw)) {
+			servers[name] = raw;
+			continue;
+		}
+		servers[name] = claudeServer(raw);
 	}
 	return { mcpServers: servers };
 }

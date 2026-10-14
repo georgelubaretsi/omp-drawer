@@ -1,1 +1,0 @@
-{{file}} has {{count}} lines

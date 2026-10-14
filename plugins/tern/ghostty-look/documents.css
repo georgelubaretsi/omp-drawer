@@ -1,9 +1,0 @@
-/* omp-ghostty, documents: rendered Markdown in file panes, this plugin's one rule outside omp's
-   surfaces. Tern centres it in an 832px column (.mde-col, 720px of text inside its 56px padding),
-   so a wide table or diagram is cut at the column's edge while the pane stays empty around it.
-   1200px gives them room and keeps paragraphs readable; a narrower pane is filled as before.
-   .mde-col is Tern's own class, not a documented hook (seen in Tern 0.7.2): if Tern renames it,
-   files go back to the 832px column. */
-.tn-pane.file .mde-col {
-	max-width: 1200px;
-}

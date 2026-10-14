@@ -1,0 +1,24 @@
+{
+  "output": {
+    "categories": [
+      {
+        "id": "bd96baf8-ca7f-4bad-9d2f-032caf1d5b87",
+        "categoryId": "madeira_island",
+        "categoryName": "Madeira Island",
+        "clusterCount": 2
+      },
+      {
+        "id": "bcda223a-cc1a-4640-8310-f87b7bea9bce",
+        "categoryId": "usa_|_georgia",
+        "categoryName": "USA | Georgia",
+        "clusterCount": 2
+      },
+      {
+        "id": "dcfe676f-fc55-41e7-9f1e-3719df243fd5",
+        "categoryId": "3d_printing",
+        "categoryName": "3D Printing",
+        "clusterCount": 2
+      }
+    ]
+  }
+}

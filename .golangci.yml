@@ -1,0 +1,94 @@
+# golangci-lint v2 for the Go module plugins/go.mod, run by the workspace lint job and the public
+# repo's check. Limits match the TypeScript ones: complexity 12, nesting depth 4, 4 parameters.
+# Length is a guideline, not a check (AGENTS.md). A rule is turned off inline, for one line,
+# naming the linter and giving a reason (nolintlint), or here for a whole kind of file, with the
+# reason in a comment (docs/lint.md). Linters whose findings here were only ever false or
+# cosmetic are left out: gosec (fixed programs and known paths read as attacks), noctx (things
+# with nothing to cancel), perfsprint (micro-speed), and gocritic's unnamedResult, httpNoBody and
+# rangeValCopy and revive's unused-receiver (style or copies that cost nothing).
+version: "2"
+
+# Every finding at once, so a fix doesn't uncover more.
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+linters:
+  default: standard
+  enable:
+    - copyloopvar
+    - cyclop
+    - dupword
+    - durationcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - forcetypeassert
+    - gocheckcompilerdirectives
+    - gocritic
+    - intrange
+    - misspell
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnil
+    - nolintlint
+    - predeclared
+    - revive
+    - thelper
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - wastedassign
+  settings:
+    cyclop:
+      max-complexity: 12
+    nestif:
+      min-complexity: 4
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+      disabled-checks:
+        - unnamedResult
+        - httpNoBody
+        - rangeValCopy
+    exhaustive:
+      # A switch with a default case handles every other value on purpose (reflect.Kind has 27).
+      default-signifies-exhaustive: true
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    revive:
+      enable-default-rules: true
+      rules:
+        - name: argument-limit
+          arguments: [4]
+        - name: max-control-nesting
+          arguments: [4]
+        - name: confusing-results
+        - name: early-return
+        - name: use-any
+        - name: unused-receiver
+          disabled: true
+  exclusions:
+    rules:
+      # A wrong type assertion in a test panics and fails the test, as a check would.
+      - path: _test\.go
+        linters:
+          - forcetypeassert
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      # The module's own packages in their own import group, after the standard library's.
+      local-prefixes:
+        - piebird.dev/plugins
+    gofumpt:
+      # Without it, gofumpt takes the module path for the standard library's.
+      module-path: piebird.dev/plugins

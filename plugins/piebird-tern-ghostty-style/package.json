@@ -1,0 +1,26 @@
+{
+  "name": "piebird-tern-ghostty-style",
+  "version": "0.1.0",
+  "description": "omp in Tern, drawn the way omp looks in Ghostty: one box per tool call, thoughts left open, bash as $ command, compact diffs and replies",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgelubaretsi/piebird.git",
+    "directory": "plugins/piebird-tern-ghostty-style"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@oh-my-pi/pi-coding-agent": "18.8.9",
+    "@oh-my-pi/pi-utils": "18.8.9",
+    "@types/bun": "1.4.0",
+    "typescript": "5.9.3"
+  },
+  "omp": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  }
+}

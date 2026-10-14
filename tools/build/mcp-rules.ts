@@ -1,6 +1,6 @@
 // mcp.json rules the schema leaves to the Agent Plugins spec prose (reference/agent-plugins/1.0.0/spec.md, cited as §).
 import { lstat } from "node:fs/promises";
-import { join, posix } from "node:path";
+import { join } from "node:path";
 import { isObject, type JsonObject, pointerToken } from "./json";
 import { escapesLexically, NODE_MODULES_PROBLEM, type PluginDir, throughNodeModules } from "./paths";
 import { validateServer } from "./schemas";
@@ -30,7 +30,6 @@ async function commandProblem(dir: PluginDir, command: string): Promise<string |
 		return "must be a bare executable name or a path starting with ./ (Agent Plugins §7.2.1)";
 	if (escapesLexically(command)) return ROOT_ESCAPE;
 	if (throughNodeModules(command)) return NODE_MODULES_PROBLEM;
-	if (dir.generated?.has(posix.normalize(command))) return undefined;
 	if ((await lstat(join(dir.path, command)).catch(() => undefined))?.isFile()) return undefined;
 	const hint = spaced ? "; arguments go in args" : "";
 	return `must name a file bundled in the plugin${hint} (Agent Plugins §7.2.1)`;

@@ -1,0 +1,9 @@
+{
+  "output": {
+    "signed_in": true,
+    "from": {
+      "kind": "file",
+      "path": "/home/ada/.config/piebird/kagi-vault/secrets.json"
+    }
+  }
+}

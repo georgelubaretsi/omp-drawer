@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "omp-drawer catalog.json",
-  "description": "The hand-written plugin list tools/build.ts turns into the omp, Claude Code and Codex marketplace files. Uniqueness of entry names and the match between entries and plugins/<name>/ are checked in tools/build.ts.",
+  "title": "piebird catalog.json",
+  "description": "The hand-written plugin list tools/build.ts turns into the omp, Claude Code and Codex marketplace files. Uniqueness of entry names, the match between entries and plugins/<name>/, and the tern host's so.stencil.tern/ folder are checked in tools/build.ts.",
   "type": "object",
   "properties": {
     "name": {
@@ -39,16 +39,50 @@
             "$ref": "#/$defs/text"
           },
           "hosts": {
+            "description": "Where the plugin runs. Tern has no marketplace: a plugin with the tern host keeps its Tern plugin in so.stencil.tern/ and needs the omp host, whose part installs it.",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
             "items": {
-              "enum": ["omp", "claude", "codex"]
+              "enum": ["omp", "claude", "codex", "tern"]
             }
+          },
+          "development": {
+            "description": "Hosts whose part (com.anthropic.claudecode/, com.openai/) is still in development: built and tested, but the build leaves it out of the manifest that host reads.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "enum": ["claude", "codex"]
+            }
+          },
+          "program": {
+            "description": "The plugin's native program, when it has one: its Go source is cmd/<program>/, with the plugin's settings.json beside it, and the build puts it in the plugin's native/ under this name, the command people and agents run.",
+            "$ref": "#/$defs/name"
           }
         },
         "required": ["name", "category", "hosts"],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "if": {
+          "properties": {
+            "hosts": {
+              "type": "array",
+              "contains": {
+                "const": "tern"
+              }
+            }
+          }
+        },
+        "then": {
+          "properties": {
+            "hosts": {
+              "type": "array",
+              "contains": {
+                "const": "omp"
+              }
+            }
+          }
+        }
       }
     }
   },

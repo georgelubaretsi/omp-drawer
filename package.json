@@ -1,5 +1,5 @@
 {
-  "name": "omp-drawer",
+  "name": "piebird",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -7,23 +7,35 @@
     "plugins/*"
   ],
   "scripts": {
-    "build": "bun tools/build.ts && bun tools/agent-content.ts",
-    "lint": "oxlint",
-    "fmt": "oxfmt '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,css}'",
-    "fmt:check": "oxfmt --check '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,css}'",
+    "build": "bun tools/build.ts && bun tools/native.ts && bun tools/model-page.ts",
+    "lint": "oxlint && golangci-lint run ./...",
+    "fmt": "oxfmt '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,css}' && golangci-lint fmt ./...",
+    "fmt:check": "oxfmt --check '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,css}' && golangci-lint fmt --diff ./...",
     "typecheck": "tsc -p . && bun run --filter './plugins/*' typecheck",
-    "test": "bun test ./tools && bun run --filter './plugins/*' test",
-    "check": "bun tools/build.ts --check && bun tools/agent-content.ts --check && bun run lint && bun run fmt:check && bun run typecheck && bun run test"
+    "test": "bun test ./tools ./kit ./installer && bun run --filter './plugins/*' test && go test -race ./...",
+    "audit": "bun audit --ignore GHSA-hp3w-g68c-fv3c && go tool govulncheck ./...",
+    "check": "bun tools/build.ts --check && bun tools/model-page.ts --check && bun run lint && bun run fmt:check && bun run typecheck && bun run test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "2.2.0"
   },
   "devDependencies": {
+    "@fluent/bundle": "0.19.1",
     "@humanwhocodes/momoa": "3.3.13",
+    "@napi-rs/canvas": "1.0.9",
+    "@oh-my-pi/pi-utils": "18.8.9",
     "@types/bun": "1.4.0",
-    "ajv": "^8",
+    "ajv": "8.20.0",
     "keep-a-changelog": "3.2.0",
-    "oxfmt": "0.72.0",
-    "oxlint": "1.87.0",
+    "oxfmt": "0.71.0",
+    "oxlint": "1.86.0",
     "oxlint-tsgolint": "7.0.2003",
     "typescript": "5.9.3",
     "yaml": "2.9.1"
-  }
+  },
+  "overrides": {
+    "adm-zip": "0.6.1",
+    "sharp": "0.35.5"
+  },
+  "trustedDependencies": []
 }

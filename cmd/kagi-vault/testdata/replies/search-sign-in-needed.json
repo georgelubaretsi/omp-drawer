@@ -1,0 +1,12 @@
+{
+  "error": {
+    "id": "sign-in-needed",
+    "variables": {
+      "opened": "no",
+      "page": "http://127.0.0.1:7777/0123abcd/",
+      "problem": "no browser on this computer",
+      "vault": "/home/ada/.claude/plugins/piebird-kagi-search/native/kagi-vault",
+      "why": "no-session"
+    }
+  }
+}

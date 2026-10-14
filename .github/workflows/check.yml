@@ -1,4 +1,4 @@
-# The public omp-drawer repository's checks, for its pull requests and pushes: everything
+# The public piebird repository's checks, for its pull requests and pushes: everything
 # `bun run check` covers, in the dev shell of flake.nix. In the private workspace this file sits
 # at plugins/.github/workflows/, where GitHub never runs it: it reads workflows only from
 # .github/workflows/ at a repository's root.
@@ -29,3 +29,36 @@ jobs:
         run: bun install --frozen-lockfile
       - name: bun run check
         run: bun run check
+
+  vaults:
+    # The secret stores internal/secrets keeps secrets in, each tested on its own system: the
+    # Keychain (on a throwaway keychain), Credential Manager, and the Secret Service of GNOME
+    # Keyring on a session bus. The check job's Linux, with no session bus, covers the file.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Vault tests
+        if: runner.os != 'Linux'
+        run: go test -count=1 -run Vault -v ./internal/secrets/
+      - name: Vault tests with GNOME Keyring
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends dbus gnome-keyring
+          unlock='printf test | gnome-keyring-daemon --unlock --components=secrets >/dev/null'
+          dbus-run-session -- sh -c "$unlock && go test -count=1 -run Vault -v ./internal/secrets/" \
+            >vaults.log 2>&1 || { cat vaults.log; exit 1; }
+          cat vaults.log
+          grep -q 'system vault: secret-service' vaults.log

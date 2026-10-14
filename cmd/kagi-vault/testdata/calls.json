@@ -1,0 +1,22 @@
+[
+  { "name": "search", "op": "search", "input": { "query": "go http client timeout" } },
+  { "name": "search-limited", "op": "search", "input": { "query": "go http client timeout", "time": "week", "limit": 3 } },
+  { "name": "batch-search", "op": "batch-search", "input": { "queries": ["go http client timeout", "go context deadline"], "limit": 3 } },
+  { "name": "quick", "op": "quick", "input": { "query": "What is the boiling point of water?" } },
+  { "name": "status", "op": "status", "input": {} },
+  { "name": "news-search", "op": "news-search", "input": { "query": "openai", "limit": 5 } },
+  { "name": "news", "op": "news", "input": { "category": "3d_printing", "limit": 3 } },
+  { "name": "news-categories", "op": "news-categories", "input": {} },
+  { "name": "news-chaos", "op": "news-chaos", "input": {} },
+  { "name": "news-filter-presets", "op": "news-filter-presets", "input": { "lang": "en" } },
+  { "name": "smallweb", "op": "smallweb", "input": { "limit": 5 } },
+  { "name": "raw-read", "op": "raw-read", "input": { "request": "https://news.kagi.com/api/batches/latest" } },
+  { "name": "status-signed-out", "op": "status", "input": {}, "session": "stale" },
+  { "name": "status-none", "op": "status", "input": {}, "session": "none" },
+  { "name": "search-sign-in-needed", "op": "search", "input": { "query": "rust async runtime" }, "session": "none" },
+  { "name": "search-dates-order", "op": "search", "input": { "query": "go http client timeout", "from_date": "2026-10-12", "to_date": "2026-10-01" } },
+  { "name": "batch-search-empty-query", "op": "batch-search", "input": { "queries": ["go http client timeout", " "] } },
+  { "name": "news-no-category", "op": "news", "input": { "category": "astrology" } },
+  { "name": "raw-read-host", "op": "raw-read", "input": { "request": "https://example.com/" } },
+  { "name": "raw-write-cookie", "op": "raw-write", "input": { "request": "POST /settings\nCookie: kagi_session=other\n\nx=1" } }
+]

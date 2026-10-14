@@ -1,6 +1,7 @@
 // The command lines: `bun tools/check-changelog.ts <file>...` (each file's name and format) and
 // `bun tools/check-changelog-entries.ts [--opted-out] [--touched <changelog> <time>]... <changes>
-// <paths> <parent> <staged>` (the commit-msg check, run by tools/check-changelog-entries.sh).
+// <paths> <parent paths> <parent dir> <staged dir>` (the commit-msg check, run by the workspace's
+// tools/check-changelog-entries.ts).
 // Exit codes: 0 ok, 1 problems, 2 the check can't run.
 import { readFile } from "node:fs/promises";
 import { basename, join } from "node:path";

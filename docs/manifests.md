@@ -41,9 +41,98 @@ last value.
 ### catalog.json
 
 Catalog name, owner, description and the plugin list in output order, each with `category` and
-`hosts` (any of `omp`, `claude`, `codex`). Every folder under `plugins/` needs a catalog entry
-and a `plugin.json`, and every entry needs a folder (exact names); remove the folder of a
-removed plugin.
+`hosts` (any of `omp`, `claude`, `codex`, `tern`). Every folder under `plugins/` needs a catalog
+entry and a `plugin.json`, and every entry needs a folder (exact names); remove the folder of a
+removed plugin. Two optional fields:
+
+- `development`: hosts (`claude`, `codex`) whose part is still in development: built and
+  tested, but left out of the manifest that host reads, so it doesn't reach people yet.
+- `program`: the plugin's native program, when it has one: its Go command in `cmd/<program>/`,
+  and the name people and agents run it by.
+
+### Tern parts
+
+Tern has no marketplace, so the `tern` host is delivered through omp: a plugin with it needs the
+`omp` host too (the catalog schema), keeps its Tern plugin in `so.stencil.tern/` (the Agent
+Plugins extension directory, §8.2, for Tern's reverse-domain namespace), and its omp part
+installs it with `kit/omp/tern-part.ts`. The build checks that the folder exists exactly when the
+catalog lists `tern`, and that its `plugin.toml` has the plugin's name as `id` and `plugin.json`'s
+`version`. Tern checks the rest of `plugin.toml` itself: `tools/build/consumers.test.ts` links
+the part with `tern plugin link` in a throwaway Tern profile.
+
+### Host parts
+
+A plugin may carry code that runs inside a host, in the Agent Plugins extension directory (§8.2)
+named for that host's reverse-domain id. The build checks that the folder exists only when the
+catalog lists its host, and that it holds `hooks/hooks.json`, which the generated manifest for
+that host names in `hooks`. The parts aren't at the plugin root, where the hosts would find
+their hooks by default, because each host reads a root `hooks/hooks.json` and refuses the
+other's keys.
+
+- Claude Code, `com.anthropic.claudecode/`: a mod (code.claude.com/docs/en/plugins/mods), its
+  hooks file naming the module in `modules`; `.claude-plugin/plugin.json` names the file.
+  Claude Code checks the rest: `claude plugin validate` in `tools/build/consumers.test.ts` and in
+  the plugin's own tests, which also run the mod's tests with
+  `claude plugin test com.anthropic.claudecode`. The module's types come from a declaration file
+  beside it covering the API it uses: Claude Code's own declarations are not redistributable.
+- Codex, `com.openai/`: command hooks (learn.chatgpt.com/docs/hooks); the generated
+  `.codex-plugin/plugin.json` (`name` and `hooks`) names the file. Codex skips the hooks of a
+  plugin in the Agent Plugins format for now, so a Codex part stays under `development` until it
+  doesn't.
+
+### Settings
+
+Everything a person sets for a plugin is declared in one file, `plugins/<name>/core/settings.json`
+(`tools/settings.schema.json`). Not at the plugin root: Claude Code reads a `settings.json` there
+as its own default settings. The build turns it into `core/settings.gen.ts` for the shells (a
+Claude Code mod imports only code) and copies it beside the plugin's vault, as
+`cmd/<program>/settings.gen.json`, for the vault to embed:
+
+- `settings`, by key, each a `type` with a title, what it is about and a default: a `choice`
+  among fixed values (each a value, a label and what it means), a `text`, or a `path`. The shells
+  resolve them (`kit/core/settings.ts`) from the settings files below and the agent's own
+  settings screen.
+- `secrets`: each a credential, by key: a title, what it is about, and the environment variable
+  that may supply it instead (`env`, for CI and containers). The vault keeps them in the
+  system's secret store; no agent's settings screen holds them, and no code reads an environment
+  variable for a secret that isn't declared here.
+
+The build writes each agent's own settings screen from the settings:
+
+- Claude Code: `userConfig` in `.claude-plugin/plugin.json`, which its mod gets as `register`'s
+  options;
+- omp: `omp.settings` in `package.json`, which the plugin's omp part reads.
+
+A choice starts with `shared`, its default; a text or path is empty by default. Either way the
+default follows the shared one.
+
+#### Settings files
+
+The shared choices live in two files of one format, a section per plugin keyed by its name:
+`~/.agents/piebird/settings.json`, the person's, and `<project>/.agents/piebird/settings.json`,
+the repo's, committed. `kit/core/settings.ts` resolves each setting, lowest first: the plugin's
+default, the project's file, the person's file, the agent's own screen. A repo can't override the
+person, and a value a file holds that isn't declared, is a secret, or isn't one of the choices is
+reported and skipped. A path is relative to the folder holding `.agents/` unless absolute. The
+build writes `schemas/settings.schema.json` from every plugin's declarations, for editors.
+
+### Operations
+
+What a plugin can do for an agent or for another plugin is declared once, in
+`plugins/<name>/core/operations.json` (`tools/operations.schema.json`). Each operation, by id
+(lowercase words joined by `-`; other plugins name it `<plugin>.<operation>`), has:
+
+- `input`: a JSON Schema for an object, its arguments; `output`: a JSON Schema for its answer;
+- `errors`: the error ids it can end with;
+- `vault`: true when the plugin's vault performs it, because it needs a secret;
+- `tool`: when the model gets it as a tool, its name and hints (`readOnly`, `destructive`,
+  `idempotent`, `openWorld`, MCP's annotations; `alwaysLoad`, in front of tool search).
+
+Text the model reads isn't in this file: `title`, `description` and `examples` anywhere in a
+schema are refused. It lives in `core/model.ftl`: a tool's message has the operation's id, with
+one attribute per argument saying what it is for, and an error's message is `error-<id>`. The
+build refuses a schema Ajv can't compile, two tools with one name, and a tool, argument or error
+model.ftl doesn't describe. Within a version, changes only add; the build doesn't check that.
 
 ### plugin.json
 
@@ -79,8 +168,24 @@ without `SKILL.md` is not a skill and is ignored (Agent Plugins §7.1).
 - `.omp-plugin/marketplace.json`, `.claude-plugin/marketplace.json` and
   `.agents/plugins/marketplace.json` (Codex), for the plugins with that host; absent when none.
 - For `claude` plugins: `plugins/<name>/.claude-plugin/plugin.json` and `.mcp.json`, with
-  Claude Code's variable names.
-- `version` and `description` in each `plugins/<name>/package.json`.
+  Claude Code's variable names; the manifest's `hooks` names the Claude Code part's hooks file,
+  and `userConfig` holds the settings.
+- For `codex` plugins with a Codex part: `plugins/<name>/.codex-plugin/plugin.json`.
+- `version` and `description` in each `plugins/<name>/package.json`, and `omp.settings`.
+- `plugins/<name>/kit/`: copies of the kit's parts the plugin's shells use (`kit/core/` with any
+  shell, `kit/bun/` with `src/` or `program/`, `kit/omp/` with `src/`, `kit/claude/` with
+  `com.anthropic.claudecode/`, `kit/program/` with `program/`), tests left out. A copy a plugin no
+  longer needs is deleted.
+- `plugins/<name>/core/model.gen.ts` from `core/model.ftl`: the catalog as text and its type,
+  each message with the variables it needs. Deleted when the plugin has no `model.ftl`.
+- `cmd/<program>/settings.gen.json` from the plugin's `core/settings.json`, without `$schema`,
+  for the program to embed (`go:embed` reaches only its own folder).
+- `plugins/<name>/core/settings.gen.ts` from `core/settings.json`: the declarations as code, read
+  by `kit/core/declared.ts`.
+- `schemas/settings.schema.json`: the settings files' schema, from every plugin's settings.
+- `plugins/<name>/core/operations.gen.ts` from `core/operations.json` and `core/model.gen.ts`: the
+  operations, each tool and argument with its text, read by `kit/core/operations.ts`. A message
+  that is missing or needs variables fails to compile.
 
 Codex entries carry only the fields its docs list (`name`, `source: {source: "local", path}`,
 `policy`, `category`). Claude entries leave `version` to the generated `plugin.json`.
@@ -105,15 +210,44 @@ Agent Plugins (code.claude.com/docs/en/plugins-reference, /mcp):
 
 The consumer test runs a translated server under `claude mcp list` to watch this.
 
-## Pinned tools
+## Native programs
 
-A plugin needing a prebuilt binary pins it in `plugins/<name>/mise.toml`
-(`"github:<owner>/<repo>" = { version = "…", filter_bins = "<exe>" }`; only the `github:`
-backend), next to the `mise.lock` that
-`mise lock --platform macos-arm64,macos-x64,linux-x64,linux-arm64` writes there (dev shell;
-`mise trust` first). The build checks both and generates `bin/launcher` (a copy of
-`tools/launcher/launcher.sh`) and `bin/pins`.
+A plugin that holds a secret has a vault: a signed Go program that keeps the secret and performs
+the operations that need it (`core/operations.json`, `vault: true`), as a command in
+`cmd/<program>/` (package `main`) that its catalog entry names (`program`), in the module of
+`go.mod` (`piebird.dev/plugins`). The parts vaults share (secret stores, the sign-in page,
+operations over JSON) are in `internal/`. `bun tools/native.ts` (part of `bun run build`)
+compiles it into `plugins/<name>/native/`, which is never committed:
 
-`bin/launcher <exe> [args]` runs, in order of preference: `$<EXE>_BIN`; `<exe>` on `PATH`,
-reporting the pinned version; the cached copy in the plugin's data folder; otherwise it
-downloads the pinned build and runs it once its sha256 matches.
+- `native/<platform>/<program>` for macos-arm64, macos-x64, linux-arm64 and linux-x64;
+- `native/<program>.exe` for Windows (x64; Windows on ARM runs it emulated);
+- `native/<program>`, a POSIX script that starts this system's build.
+
+The plugin's shells and skills run `native/<program>`, and `native/<program>.exe` on Windows
+(`kit/core/vault.ts`). Builds are reproducible (`-trimpath`, no build id, no VCS stamp,
+`CGO_ENABLED=0`), so a binary can be checked against its source.
+
+A plugin's Bun program, `plugins/<name>/program/main.ts`, is built beside them under the plugin's
+own name (`native/<platform>/<name>`, `native/<name>.exe`, the starter `native/<name>`), with
+`bun build --compile` for each platform. The program reads no `bunfig.toml`, `.env`,
+`tsconfig.json` or `package.json` from the folder it runs in, so a cloned repo can't change what
+it does. On a Mac the build signs the macOS builds again: Bun's signature of a build for the
+other architecture is invalid, and macOS kills such a program at launch. They are signed ad hoc,
+or with the Developer ID in `PIEBIRD_CODESIGN_IDENTITY` when it is set (Go's builds too, for
+notarization), hardened, the Bun builds with `tools/bun.entitlements` (`allow-jit`): without
+it the hardened runtime keeps Bun's JavaScript engine from compiling, and a program runs about
+8 times slower. `bun tools/native.ts --release` refuses a build for this system that links a
+library outside the system's own, as a Bun that isn't Bun's official build does (the dev
+shell's links Nix's ICU), and refuses to build macOS programs anywhere but on a Mac.
+
+### Releases
+
+Pushing a plugin's tag, `<plugin>/v<version>` with the version in its `plugin.json`, runs
+`.github/workflows/release.yml`: on a Mac, with Bun's official build, `bun tools/release.ts`
+builds the plugin's programs as a release, signs the macOS builds with the Developer ID and has
+Apple notarize them, signs the Windows builds when the repository variable `WINDOWS_SIGNING` is
+`on` (it waits for the code-signing certificate; until then they are unsigned), and packs one
+archive per platform, `<plugin>-<version>-<platform>.tar.gz` holding `native/` as the plugin
+carries it, with `SHA256SUMS`. The workflow publishes them as the tag's GitHub release. Its
+signing secrets live in the `release` environment, limited to the release tags, so a workflow
+edited on a branch can't read them; the workflow's header lists them.

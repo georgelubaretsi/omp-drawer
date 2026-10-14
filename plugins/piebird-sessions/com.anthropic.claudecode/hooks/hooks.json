@@ -1,0 +1,4 @@
+{
+	"description": "piebird-sessions's mod: the session_read tool, and a line in the context naming this session",
+	"modules": ["./register.ts"]
+}

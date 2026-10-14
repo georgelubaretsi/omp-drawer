@@ -3,26 +3,34 @@
 `reference/` holds generated upstream material. Never edit it by hand, and it is never linted.
 
 The public repo carries only `agent-plugins/`. The Tern material (`tern-installed/`,
-`tern-docs/`, `tern-sdk/`), omp's source (`omp/`) and `SYNCED.md` are not in the public repo;
-fetch them with `bun tools/sync-references.ts tern omp`.
+`tern-docs/`, `tern-sdk/`), omp's source (`omp/`), the Claude Code and Codex docs
+(`claude-code-docs/`, `codex-docs/`), the MCP repository (`mcp/`) and `SYNCED.md` are not in the
+public repo; fetch them with `bun tools/sync-references.ts`.
 
 ## Refreshing
 
-From the repo root: `bun tools/sync-references.ts [tern | omp | agent-plugins ...]` (all sources when
+From the repo root: `bun tools/sync-references.ts [tern | omp | agent-plugins | claude-code | codex | mcp ...]` (all sources when
 none is named). Then `git status -- reference/` and `git diff --stat -- reference/` show what
 changed.
 
 For Tern work, fetch the Tern material if it is missing, check `reference/` before guessing and
 cite the file. Refresh the Tern source first when the Tern section of `SYNCED.md` is older than
 7 days or its Tern version differs from `tern --version`. When a refresh changes
-`tern-installed/`, recheck `plugins/tern` and `tern.yml` (transcribed from `tern.d.luau` for
+`tern-installed/`, recheck `plugins/piebird-tern-bridge` and `tern.yml` (transcribed from `tern.d.luau` for
 selene). After any Tern update, recheck the look in Tern's Reader chat style:
-the style sheets in `plugins/tern/ghostty-look/` rely on Tern's inner classes, which can change
+the style sheets in `plugins/piebird-tern-ghostty-style/so.stencil.tern/` rely on Tern's inner classes, which can change
 (`tern-docs/styles/index.md`, "Avoid inner classes").
 
 For omp work (plugins, extensions, tools, the session journal), check omp's source in `omp/`
 before guessing and cite the file. It is checked out at the tag of the installed omp; refresh it
 first when the omp version in `SYNCED.md` differs from `omp --version`.
+
+For Claude Code or Codex work (their plugins, hooks, Claude Code's mods, MCP setup, config),
+check their docs before guessing and cite the page. The docs describe each agent's latest
+release; refresh them when their section of `SYNCED.md` is older than 7 days or its version
+differs from `claude --version` or `codex --version`. For MCP work (a server, a client, the
+wire format), check the specification and schema in `mcp/` and cite the file; refresh it when
+its section is older than 7 days.
 
 ## Contents
 
@@ -42,14 +50,25 @@ first when the omp version in `SYNCED.md` differs from `omp --version`.
 - `agent-plugins/LICENSE.md` and `LICENSES/`: the project's licensing terms and license texts
   (schemas Apache-2.0, spec CC-BY-4.0), from the same commit, and `NOTICE.md`, which the sync
   writes: what came from where. They let the folder be redistributed as it is.
+- `claude-code-docs/` (not in the public repo; fetch with the sync): every page code.claude.com's
+  `llms.txt` names, as published, by URL path (`docs/en/plugins/mods/reference.md`, …).
+- `codex-docs/` (not in the public repo; fetch with the sync): every page learn.chatgpt.com's
+  `llms.txt` names, and those of developers.openai.com's Codex and plugin sections, by URL path
+  (`docs/hooks.md`, `docs/config-file/config-reference.md`, `plugins/build/plugins.md`, …).
+- `mcp/`: a shallow git clone of modelcontextprotocol/modelcontextprotocol at main, ignored by
+  git, written by the sync: the specification of every version and the draft
+  (`docs/specification/<version>/`), the schemas (`schema/<version>/`) and the SEPs (`seps/`).
 - `SYNCED.md` (not in the public repo; written by the sync): one section per source. Tern:
   sync date, Tern version, SDK URL and commit. omp: sync date, omp version, tag and commit.
-  Agent Plugins: sync date, tag, commit and URLs.
+  Agent Plugins: sync date, tag, commit and URLs. Claude Code and Codex: sync date, the installed
+  CLI's version, the page count and pages the index names that are gone. MCP: sync date, commit
+  and the specification versions.
 
-## plugins/tern
+## Tern plugins
 
-`plugins/tern` holds the `tern_lua` tool and the `tern` skill; its Tern half `tern-plugin/` is
-linked with `tern plugin link`, as is the look `ghostty-look/` (Tern plugin `omp-ghostty`, a
-style sheet only). A throttled background Tern (macOS App Nap) trips Tern's 50 ms
-plugin budget, so the bridge needs App Nap off:
-`defaults write so.stencil.tern NSAppSleepDisabled -bool YES`.
+`plugins/piebird-tern-bridge` holds the `tern_lua` tool and the `tern` skill, with its Tern half in
+`so.stencil.tern/`; `plugins/piebird-tern-ghostty-style` is the look, a Tern plugin of style sheets. omp
+installs each Tern part (`kit/omp/tern-part.ts`). To work on one, link it instead:
+`tern plugin link plugins/<name>/so.stencil.tern`; omp leaves a linked part alone. A throttled
+background Tern (macOS App Nap) trips Tern's 50 ms plugin budget, so the bridge needs App Nap
+off: `defaults write so.stencil.tern NSAppSleepDisabled -bool YES`.

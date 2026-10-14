@@ -1,15 +1,20 @@
 #!/usr/bin/env bun
 // Refreshes ../reference. Sources: `tern` (the installed Tern's plugin API and CLI help, a copy
 // of docs.stencil.so/tern, and a git clone of stencil-hq/tern-sdk), `omp` (a git clone of omp's
-// source at the installed omp's tag; sync-references/omp.ts) and `agent-plugins` (the Agent
+// source at the installed omp's tag; sync-references/omp.ts), `agent-plugins` (the Agent
 // Plugins 1.0.0 schemas and spec, pinned to a release tag, with their licenses;
-// sync-references/agent-plugins.ts). `bun tools/sync-references.ts [source...]` refreshes the
-// named sources, all when none are named. Each source is staged first; on any failure nothing is
-// swapped and the previous copy stays. Each source owns one section of SYNCED.md. Never commits.
+// sync-references/agent-plugins.ts), `claude-code` and `codex` (their docs sites, every page
+// their llms.txt names; sync-references/llms-docs.ts) and `mcp` (a git clone of the Model
+// Context Protocol's repository; sync-references/mcp.ts). `bun tools/sync-references.ts
+// [source...]` refreshes the named sources, all when none are named. Each source is staged first;
+// on any failure nothing is swapped and the previous copy stays. Each source owns one section of
+// SYNCED.md. Never commits.
 import { existsSync } from "node:fs";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, posix } from "node:path";
 import { syncAgentPlugins } from "./sync-references/agent-plugins";
+import { syncClaudeCode, syncCodex } from "./sync-references/llms-docs";
+import { syncMcp } from "./sync-references/mcp";
 import { syncOmp } from "./sync-references/omp";
 import { mustRun, REF, ROOT, run, type Section, swap } from "./sync-references/shared";
 
@@ -182,8 +187,11 @@ const SOURCES: Record<string, () => Promise<Section>> = {
 	tern: syncTern,
 	omp: syncOmp,
 	"agent-plugins": syncAgentPlugins,
+	"claude-code": syncClaudeCode,
+	codex: syncCodex,
+	mcp: syncMcp,
 };
-const SECTION_ORDER = ["Tern", "omp", "Agent Plugins"];
+const SECTION_ORDER = ["Tern", "omp", "Agent Plugins", "Claude Code", "Codex", "MCP"];
 
 /** Replaces one `## <title>` section of SYNCED.md, keeping the other sources' sections. */
 async function writeSection(section: Section): Promise<void> {

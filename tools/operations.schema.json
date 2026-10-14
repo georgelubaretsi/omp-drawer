@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A plugin's operations: plugins/<name>/core/operations.json",
+  "description": "Everything a plugin can do for an agent or for another plugin, declared once: each operation's input and output as JSON Schema, the errors it can end with, whether its vault performs it (it needs a secret), and whether the model gets it as a tool. Other plugins name it <plugin>.<operation>. Text the model reads (what a tool does, what each argument is for, what an error means) lives in core/model.ftl, not here. Within a version, changes only add.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["operations"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "operations": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/id" },
+      "additionalProperties": { "$ref": "#/$defs/operation" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "description": "Lowercase words joined by -: the operation's id here, its message id in model.ftl, and the second half of <plugin>.<operation>.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      "maxLength": 64
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input", "output"],
+      "properties": {
+        "input": {
+          "description": "A JSON Schema for an object: the operation's arguments, each a property. With a tool, model.ftl's message for the operation has one attribute per property, saying what it is for.",
+          "type": "object",
+          "required": ["type"],
+          "properties": { "type": { "const": "object" } }
+        },
+        "output": {
+          "description": "A JSON Schema for what the operation answers with.",
+          "type": "object"
+        },
+        "errors": {
+          "description": "The errors the operation can end with, by id; model.ftl's message error-<id> says what each means.",
+          "type": "array",
+          "items": { "$ref": "#/$defs/id" },
+          "uniqueItems": true
+        },
+        "vault": {
+          "description": "The plugin's vault performs it: it needs a secret, which never leaves the vault.",
+          "type": "boolean"
+        },
+        "tool": { "$ref": "#/$defs/tool" }
+      }
+    },
+    "tool": {
+      "description": "The model gets the operation as a tool, described by model.ftl's message for the operation. The hints are MCP's tool annotations; alwaysLoad keeps the tool in front of tool search, and runsCode says it runs code the model wrote, which omp approves as code execution.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "maxLength": 64 },
+        "readOnly": { "type": "boolean" },
+        "destructive": { "type": "boolean" },
+        "idempotent": { "type": "boolean" },
+        "openWorld": { "type": "boolean" },
+        "alwaysLoad": { "type": "boolean" },
+        "runsCode": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "output": {
+    "url": "https://news.kagi.com/api/batches/latest",
+    "status": 200,
+    "content_type": "text/plain; charset=utf-8",
+    "body": "{\"id\":\"batch-1\"}"
+  }
+}

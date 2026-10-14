@@ -1,0 +1,13 @@
+{
+  "output": {
+    "signed_in": false,
+    "from": {
+      "kind": "file",
+      "path": "/home/ada/.config/piebird/kagi-vault/secrets.json"
+    },
+    "problem": {
+      "id": "signed-out",
+      "variables": {}
+    }
+  }
+}

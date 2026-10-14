@@ -1,0 +1,182 @@
+{
+  "output": {
+    "presets": [
+      {
+        "id": "politics",
+        "label": "Politics",
+        "keywords": [
+          "trump",
+          "biden",
+          "election",
+          "democrat",
+          "republican",
+          "congress",
+          "senate",
+          "parliament",
+          "minister",
+          "government",
+          "politician"
+        ]
+      },
+      {
+        "id": "conflicts",
+        "label": "Conflicts",
+        "keywords": [
+          "ukraine",
+          "russia",
+          "israel",
+          "gaza",
+          "palestine",
+          "war",
+          "conflict",
+          "missile",
+          "attack",
+          "military",
+          "invasion",
+          "bombing"
+        ]
+      },
+      {
+        "id": "health",
+        "label": "Health Crises",
+        "keywords": [
+          "covid",
+          "coronavirus",
+          "pandemic",
+          "vaccine",
+          "virus",
+          "outbreak",
+          "epidemic",
+          "quarantine",
+          "lockdown"
+        ]
+      },
+      {
+        "id": "violence",
+        "label": "Violence",
+        "keywords": [
+          "shooting",
+          "killed",
+          "murder",
+          "suicide",
+          "dead",
+          "death toll",
+          "massacre",
+          "stabbing",
+          "assault"
+        ]
+      },
+      {
+        "id": "tabloid",
+        "label": "Tabloid Sources",
+        "keywords": [
+          "dailymail.co.uk",
+          "thesun.co.uk",
+          "mirror.co.uk",
+          "tmz.com",
+          "pagesix.com",
+          "radaronline.com"
+        ]
+      },
+      {
+        "id": "crypto",
+        "label": "Cryptocurrency",
+        "keywords": [
+          "bitcoin",
+          "ethereum",
+          "crypto",
+          "cryptocurrency",
+          "blockchain",
+          "nft",
+          "defi",
+          "web3",
+          "dogecoin",
+          "binance"
+        ]
+      },
+      {
+        "id": "celebrities",
+        "label": "Celebrity News",
+        "keywords": [
+          "kardashian",
+          "celebrity",
+          "royal family",
+          "hollywood",
+          "gossip",
+          "dating",
+          "breakup",
+          "scandal"
+        ]
+      },
+      {
+        "id": "sports",
+        "label": "Sports",
+        "keywords": [
+          "football",
+          "soccer",
+          "basketball",
+          "baseball",
+          "tennis",
+          "golf",
+          "olympics",
+          "world cup",
+          "championship",
+          "league"
+        ]
+      },
+      {
+        "id": "ai",
+        "label": "AI \u0026 Tech Hype",
+        "keywords": [
+          "chatgpt",
+          "openai",
+          "artificial intelligence",
+          "ai breakthrough",
+          "machine learning",
+          "neural network",
+          "deepfake",
+          "generative ai",
+          "ai safety",
+          "agi",
+          "llm",
+          "anthropic",
+          "claude",
+          "gemini",
+          "gpt-4",
+          "gpt-5",
+          "large language model"
+        ]
+      },
+      {
+        "id": "climate",
+        "label": "Climate Anxiety",
+        "keywords": [
+          "climate change",
+          "global warming",
+          "carbon emissions",
+          "greenhouse gas",
+          "climate crisis",
+          "extreme weather",
+          "sea level rise",
+          "extinction",
+          "climate emergency"
+        ]
+      },
+      {
+        "id": "sexual-misconduct",
+        "label": "Sexual Misconduct",
+        "keywords": [
+          "sexual assault",
+          "sexual harassment",
+          "rape",
+          "sexual abuse",
+          "metoo",
+          "groping",
+          "molestation",
+          "revenge porn",
+          "pedophile"
+        ]
+      }
+    ]
+  }
+}

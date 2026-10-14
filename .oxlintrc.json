@@ -11,8 +11,6 @@
     "reportUnusedDisableDirectives": "error"
   },
   "rules": {
-    "eslint/max-lines": ["error", { "max": 300, "skipBlankLines": true, "skipComments": true }],
-    "eslint/max-lines-per-function": ["error", { "max": 60, "skipBlankLines": true, "skipComments": true }],
     "eslint/complexity": ["error", { "max": 12 }],
     "eslint/max-depth": ["error", { "max": 4 }],
     "eslint/max-params": ["error", { "max": 4 }],
@@ -69,13 +67,63 @@
     "typescript/require-array-sort-compare": ["error", { "ignoreStringArrays": true }]
   },
   "overrides": [
+    // Core is pure: it runs inside Claude Code mods, which have no runtime APIs (docs/lint.md).
     {
-      "files": ["**/*.test.ts", "**/test/**/*.ts"],
+      "files": ["kit/core/**/*.ts", "plugins/*/core/**/*.ts", "plugins/*/kit/core/**/*.ts"],
       "rules": {
-        "eslint/max-lines": ["error", { "max": 400, "skipBlankLines": true, "skipComments": true }],
-        "eslint/max-lines-per-function": ["error", { "max": 120, "skipBlankLines": true, "skipComments": true }]
+        "eslint/no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              { "regex": "^[^.]", "message": "Core imports only relative files: Claude Code mods refuse the rest." }
+            ]
+          }
+        ],
+        "eslint/no-restricted-globals": [
+          "error",
+          { "name": "process", "message": "Core has no runtime APIs: the shell passes in what it needs." },
+          { "name": "Bun", "message": "Core has no runtime APIs: the shell passes in what it needs." },
+          { "name": "Deno", "message": "Core has no runtime APIs: the shell passes in what it needs." },
+          { "name": "require", "message": "Core has no runtime APIs: the shell passes in what it needs." },
+          { "name": "module", "message": "Core has no runtime APIs: the shell passes in what it needs." },
+          { "name": "__dirname", "message": "Core has no runtime APIs: the shell passes in what it needs." },
+          { "name": "__filename", "message": "Core has no runtime APIs: the shell passes in what it needs." },
+          { "name": "Buffer", "message": "Core has no runtime APIs: the shell passes in what it needs." },
+          { "name": "global", "message": "Core has no runtime APIs: the shell passes in what it needs." },
+          { "name": "WebAssembly", "message": "Claude Code mods have no WebAssembly." },
+          { "name": "fetch", "message": "Core does no I/O: the shell does it and passes in the result." },
+          { "name": "XMLHttpRequest", "message": "Core does no I/O: the shell does it and passes in the result." },
+          { "name": "WebSocket", "message": "Core does no I/O: the shell does it and passes in the result." },
+          { "name": "EventSource", "message": "Core does no I/O: the shell does it and passes in the result." },
+          { "name": "Worker", "message": "Core does no I/O: the shell does it and passes in the result." },
+          { "name": "navigator", "message": "Core does no I/O: the shell does it and passes in the result." },
+          { "name": "localStorage", "message": "Core does no I/O: the shell does it and passes in the result." },
+          { "name": "sessionStorage", "message": "Core does no I/O: the shell does it and passes in the result." },
+          { "name": "indexedDB", "message": "Core does no I/O: the shell does it and passes in the result." },
+          { "name": "caches", "message": "Core does no I/O: the shell does it and passes in the result." },
+          { "name": "console", "message": "Core does no I/O: return what to report, and the shell reports it." },
+          { "name": "setTimeout", "message": "Time is an input to core: the shell passes it in." },
+          { "name": "setInterval", "message": "Time is an input to core: the shell passes it in." },
+          { "name": "setImmediate", "message": "Time is an input to core: the shell passes it in." },
+          { "name": "performance", "message": "Time is an input to core: the shell passes it in." },
+          { "name": "crypto", "message": "Randomness is an input to core: the shell passes it in." }
+        ],
+        "eslint/no-restricted-properties": [
+          "error",
+          { "object": "Date", "property": "now", "message": "Time is an input to core: the shell passes it in." },
+          { "object": "Math", "property": "random", "message": "Randomness is an input to core: the shell passes it in." }
+        ]
+      }
+    },
+    // Core's tests run in Bun and may use it; only the code they test must be pure.
+    {
+      "files": ["kit/core/**/*.test.ts", "plugins/*/core/**/*.test.ts"],
+      "rules": {
+        "eslint/no-restricted-imports": "off",
+        "eslint/no-restricted-globals": "off",
+        "eslint/no-restricted-properties": "off"
       }
     }
   ],
-  "ignorePatterns": ["reference/**", "node_modules/**", "**/node_modules/**"]
+  "ignorePatterns": ["reference/**", "node_modules/**", "**/node_modules/**", "kit/*/vendor/**", "plugins/*/kit/*/vendor/**"]
 }

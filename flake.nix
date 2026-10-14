@@ -1,5 +1,5 @@
 {
-  description = "omp-drawer plugins and development tooling";
+  description = "piebird plugins and development tooling";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
@@ -36,8 +36,13 @@
               # Luau lint and format (selene.toml, stylua.toml).
               pkgs.selene
               pkgs.stylua
-              # Pinned plugin tools: `mise lock` refreshes a plugin's mise.lock.
-              pkgs.mise
+              # The plugins' native programs (go.mod): Go builds and tests them, fetching the exact
+              # toolchain go.mod names; golangci-lint lints and formats them (.golangci.yml).
+              # govulncheck is a tool in go.mod, built by that same toolchain.
+              pkgs.go_1_27
+              pkgs.golangci-lint
+              # Demo videos (bun tools/demo/record.ts): ffmpeg encodes the MP4 and the WebP.
+              pkgs.ffmpeg-headless
             ];
           };
         }

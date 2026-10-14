@@ -6,6 +6,7 @@ import { lstat, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { checkChangelog } from "./changelog";
 import { claudeProblems } from "./claude";
+import { HOST_PARTS, type HostPart, hostPartProblems } from "./host-parts";
 import { isObject, type JsonObject, ValidationError } from "./json";
 import { mcpProblems } from "./mcp-rules";
 import { readJson } from "./parse";
@@ -18,8 +19,10 @@ import {
 	validateName,
 	validatePlugin,
 } from "./schemas";
+import { loadSettings, type Setting } from "./settings";
 import { checkSkills } from "./skills";
-import { LAUNCHER_FILE, loadPins, PINS_FILE } from "./tools";
+import { ternProblems } from "./tern";
+import { programProblems } from "./native";
 
 /** What a plugin folder holds. */
 export interface PluginSources {
@@ -28,8 +31,10 @@ export interface PluginSources {
 	metadata: JsonObject;
 	mcp?: JsonObject;
 	pkg?: JsonObject;
-	/** bin/pins, when the plugin pins tools in mise.toml (tools.ts). */
-	pins?: string;
+	/** The host parts the plugin has: code it runs inside a host, in that host's folder (host-parts.ts). */
+	parts: HostPart[];
+	/** What a person can choose for the plugin, from its core/settings.json (settings.ts). */
+	settings: Setting[];
 }
 
 export type Plugin = CatalogEntry & PluginSources;
@@ -39,7 +44,7 @@ export interface Sources {
 	plugins: Plugin[];
 }
 
-/** This build's cross-host rules for plugin.json (AGENTS.md); `name` is the folder name. */
+/** This build's cross-host rules for plugin.json (docs/manifests.md, "plugin.json"); `name` is the folder name. */
 function manifestProblems(file: string, manifest: JsonObject, name: string, problems: string[]): void {
 	// A name omp, Claude Code and Codex all accept:
 	if (!validateName(manifest.name)) problems.push(...schemaProblems(file, validateName.errors, "/name"));
@@ -81,13 +86,17 @@ async function loadPackage(root: string, dir: PluginDir, names: string[], proble
 	return undefined;
 }
 
-/** Validates plugins/<dir>, whose listing is `names`; returns its parsed sources, or undefined when plugin.json is unusable. */
+/**
+ * Validates plugins/<entry.name>, whose listing is `names`; `entry` is its catalog entry, or just
+ * its name when it has none. Returns its parsed sources, or undefined when plugin.json is unusable.
+ */
 async function loadPlugin(
 	root: string,
-	name: string,
+	entry: Pick<CatalogEntry, "name" | "program">,
 	names: string[],
 	problems: string[],
 ): Promise<PluginSources | undefined> {
+	const { name } = entry;
 	const base = `plugins/${name}`;
 	const dir: PluginDir = { base, path: join(root, base) };
 
@@ -105,14 +114,13 @@ async function loadPlugin(
 
 	await checkSkills(root, dir, names, problems);
 	await checkChangelog(dir, names, manifest.version, problems);
-	// Before mcp.json: a server may run a file the build generates here (tools.ts), absent until it runs.
-	const pins = await loadPins(dir, names, problems);
-	const generated = pins === undefined ? undefined : new Set([LAUNCHER_FILE, PINS_FILE]);
-	const mcp = await loadMcp(root, { ...dir, generated }, names, problems);
+	const mcp = await loadMcp(root, dir, names, problems);
 	const pkg = await loadPackage(root, dir, names, problems);
 
 	const { $schema: _schema, name: _name, ...metadata } = manifest;
-	return { manifest, metadata, mcp, pkg, pins };
+	const parts = HOST_PARTS.filter(part => names.includes(part.dir));
+	const settings = await loadSettings(root, dir, problems);
+	return { manifest, metadata, mcp, pkg, parts, settings };
 }
 
 /** catalog.json when it passes its schema, with its entries; problems reported otherwise. */
@@ -134,12 +142,12 @@ async function pluginDirs(root: string): Promise<string[]> {
 	return entries.filter(d => d.isDirectory()).map(d => d.name);
 }
 
-/** Every catalog entry is unique and has a folder; returns the listed names. */
-function entryProblems(entries: CatalogEntry[], dirs: string[], problems: string[]): Set<string> {
-	const listed = new Set<string>();
+/** Every catalog entry is unique and has a folder; returns the entries by name. */
+function entryProblems(entries: CatalogEntry[], dirs: string[], problems: string[]): Map<string, CatalogEntry> {
+	const listed = new Map<string, CatalogEntry>();
 	entries.forEach((entry, i) => {
 		if (listed.has(entry.name)) problems.push(`catalog.json: /plugins/${i}/name duplicates plugin "${entry.name}"`);
-		listed.add(entry.name);
+		listed.set(entry.name, entry);
 		if (!dirs.includes(entry.name))
 			problems.push(`catalog.json: /plugins/${i}/name "${entry.name}" has no plugins/${entry.name}/ folder`);
 	});
@@ -147,7 +155,12 @@ function entryProblems(entries: CatalogEntry[], dirs: string[], problems: string
 }
 
 /** Loads each folder under plugins/; `listed` is undefined when the catalog is unusable. */
-async function loadPlugins(root: string, dirs: string[], listed: Set<string> | undefined, problems: string[]) {
+async function loadPlugins(
+	root: string,
+	dirs: string[],
+	listed: ReadonlyMap<string, CatalogEntry> | undefined,
+	problems: string[],
+) {
 	const loaded = new Map<string, PluginSources>();
 	for (const dir of dirs) {
 		if (listed && !listed.has(dir))
@@ -157,7 +170,7 @@ async function loadPlugins(root: string, dirs: string[], listed: Set<string> | u
 			problems.push(`plugins/${dir}/plugin.json: missing; add it or remove the folder`);
 			continue;
 		}
-		const plugin = await loadPlugin(root, dir, names, problems);
+		const plugin = await loadPlugin(root, listed?.get(dir) ?? { name: dir }, names, problems);
 		if (plugin) loaded.set(dir, plugin);
 	}
 	return loaded;
@@ -177,6 +190,10 @@ export async function loadSources(root: string): Promise<Sources> {
 	const listed = entryProblems(entries, dirs, problems);
 	const loaded = await loadPlugins(root, dirs, catalog ? listed : undefined, problems);
 	problems.push(...claudeProblems(catalog, entries, loaded));
+	const versions = new Map([...loaded].map(([name, p]) => [name, p.manifest.version]));
+	problems.push(...(await ternProblems(root, catalog ? entries : [], versions)));
+	problems.push(...(await hostPartProblems(root, catalog ? entries : [], new Set(loaded.keys()))));
+	problems.push(...(await programProblems(root, catalog ? entries : [])));
 
 	if (problems.length > 0 || !catalog) throw new ValidationError(problems);
 	const plugins: Plugin[] = [];

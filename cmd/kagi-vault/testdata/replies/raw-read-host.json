@@ -1,0 +1,8 @@
+{
+  "error": {
+    "id": "host",
+    "variables": {
+      "host": "example.com"
+    }
+  }
+}

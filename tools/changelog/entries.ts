@@ -4,9 +4,9 @@
 // A thing whose files a commit changes keeps its changelog, and unless the commit changes only the
 // changelog or opts out, the changelog gets a new entry under Unreleased: one the commit's parent
 // doesn't have. The monthly changelogs (monthly.ts) get no new entry while their Unreleased
-// section holds an earlier month's. tools/check-changelog-entries.sh supplies the changes, the
-// index's paths, both states, when the parent last touched each monthly changelog and whether the
-// message opts out.
+// section holds an earlier month's. The workspace's tools/check-changelog-entries.ts supplies the
+// changes, the index's paths, both states, when the parent last touched each monthly changelog and
+// whether the message opts out.
 import { addsEntry, readChangelog, unreleasedEntries } from "./check";
 import { MONTHLY, monthOf, monthVersion } from "./monthly";
 

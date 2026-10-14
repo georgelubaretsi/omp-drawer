@@ -1,5 +1,5 @@
 {
-  "name": "omp-drawer",
+  "name": "piebird",
   "owner": {
     "name": "George Lubaretsi",
     "email": "george@lubaretsi.com"
@@ -7,15 +7,48 @@
   "description": "Plugins for omp, Claude Code, Codex and the Tern terminal",
   "plugins": [
     {
-      "name": "agent-variants",
+      "name": "piebird-kagi-search",
+      "category": "search",
+      "hosts": [
+        "omp",
+        "claude",
+        "codex"
+      ],
+      "development": [
+        "codex"
+      ],
+      "program": "kagi-vault"
+    },
+    {
+      "name": "piebird-agent-variants",
       "category": "development",
       "hosts": [
         "omp"
       ]
     },
     {
-      "name": "kagi",
-      "category": "search",
+      "name": "piebird-sessions",
+      "category": "development",
+      "hosts": [
+        "omp",
+        "claude",
+        "codex"
+      ],
+      "development": [
+        "codex"
+      ]
+    },
+    {
+      "name": "piebird-tern-bridge",
+      "category": "development",
+      "hosts": [
+        "omp",
+        "tern"
+      ]
+    },
+    {
+      "name": "piebird-threads",
+      "category": "productivity",
       "hosts": [
         "omp",
         "claude",
@@ -23,31 +56,20 @@
       ]
     },
     {
-      "name": "sessions",
-      "category": "development",
-      "hosts": [
-        "omp"
-      ]
-    },
-    {
-      "name": "tern",
-      "category": "development",
-      "hosts": [
-        "omp"
-      ]
-    },
-    {
-      "name": "threads",
+      "name": "piebird-workflow-rules",
       "category": "productivity",
       "hosts": [
-        "omp"
+        "omp",
+        "claude",
+        "codex"
       ]
     },
     {
-      "name": "workflow",
-      "category": "productivity",
+      "name": "piebird-tern-ghostty-style",
+      "category": "appearance",
       "hosts": [
-        "omp"
+        "omp",
+        "tern"
       ]
     }
   ]
