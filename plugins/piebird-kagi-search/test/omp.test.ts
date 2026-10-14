@@ -29,7 +29,7 @@ function load(io: Io, ompChoice?: string | Readonly<Record<string, string>>, act
 		getActiveTools: () => [...active],
 		setActiveTools: async (names: string[]) => void active.splice(0, active.length, ...names),
 	};
-	const choiceIn = (cwd: string) => (typeof ompChoice === "object" ? ompChoice[cwd] : ompChoice);
+	const choiceIn = (cwd: string) => ({ person: typeof ompChoice === "object" ? ompChoice[cwd] : ompChoice });
 	const at: Surroundings = { io, home: HOME, plugin: "/plugin", windows: false, ompChoice: choiceIn };
 	// The part's parameter is omp's ExtensionAPI; the stand-in has the part of it the part uses.
 	Reflect.apply(kagiInOmp, undefined, [pi, at]);

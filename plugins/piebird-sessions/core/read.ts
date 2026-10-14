@@ -1,7 +1,8 @@
 // The read operation: a line with what it relates to (line alone), a page around a line (before,
-// after, or any flag), a search (find), or without a session this project's sessions.
+// after, or any flag), a search (find), or without a session this project's sessions (with find,
+// the list to pick the session to search from).
 import type { Io } from "../kit/core/io";
-import type { ModelText } from "../kit/core/model";
+import { joinText, type ModelText } from "../kit/core/model";
 import type { Handler } from "../kit/core/operations";
 import { citeLine } from "./cite";
 import { findEntries } from "./find";
@@ -39,10 +40,12 @@ function citesLine(params: ReadParams): params is ReadParams & { line: number } 
 /** The operation's text for `params`. Only reads journals. */
 export async function readSession(io: Io, params: ReadParams, context: ReadContext): Promise<ModelText> {
 	if (params.session === undefined) {
-		const { session: _, ...rest } = params;
+		const { session: _, find, ...rest } = params;
 		if (Object.values(rest).some(value => value !== undefined))
 			throw new ReadError("list-with-params", model.text("error-list-with-params"));
-		return listSessions(io, context.list, context.home);
+		const list = await listSessions(io, context.list, context.home);
+		// find searches one session: the list to pick it from, and how to search it.
+		return find === undefined ? list : joinText([model.text("find-without-session", { find }), list]);
 	}
 	check(params);
 	const file = await resolveSession(io, params.session, context);

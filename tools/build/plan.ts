@@ -7,7 +7,7 @@ import { filesUnder, kitFiles, modSnippetProblems } from "./kit";
 import { modelFiles } from "./model";
 import { operationProblems, operationsFiles } from "./operations";
 import { generatedLinkProblems } from "./paths";
-import { purityProblems } from "./purity";
+import { brandProblems, ompImportProblems, purityProblems } from "./purity";
 import { type Host, MARKET_HOSTS, type MarketHost } from "./schemas";
 import {
 	claudeUserConfig,
@@ -128,6 +128,8 @@ export async function plan(root: string): Promise<Plan> {
 	const { catalog, plugins } = await loadSources(root);
 	const problems = [
 		...(await purityProblems(root, plugins)),
+		...(await ompImportProblems(root, plugins)),
+		...(await brandProblems(root, plugins)),
 		...(await operationProblems(root, plugins)),
 		...(await modSnippetProblems(root, plugins)),
 	];

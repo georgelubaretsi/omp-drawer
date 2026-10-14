@@ -14,6 +14,8 @@ rotate = Rotate the key.
 run = Run code.
 no-results = Nothing matched.
 found = Found it.
+error-crashed = It broke: { $cause }
+error-arguments = Those arguments don't fit: { $problem }
 `);
 
 const text = (id: string): ModelText => catalog.text(id);
@@ -37,6 +39,10 @@ const operations = parseOperations(
 		},
 	}),
 	new Map(["search", "search.query", "fetch", "fetch.url", "rotate", "run"].map(id => [id, text(id)])),
+	{
+		crashed: cause => catalog.textById("error-crashed", { cause }),
+		badArguments: problem => catalog.textById("error-arguments", { problem }),
+	},
 );
 
 /** The context omp passes a tool call; here only the session's folder. */
@@ -127,7 +133,7 @@ describe("registerOperations", () => {
 		});
 	});
 
-	test("a handler that throws gives a tool error with the error's message", async () => {
+	test("a handler that throws gives a tool error: the catalog's error-crashed with its message", async () => {
 		const tools = registered({
 			...idle,
 			fetch: async () => {
@@ -135,7 +141,7 @@ describe("registerOperations", () => {
 			},
 		});
 		expect(await call(tool(tools, "fetch_page"), { url: "https://x" })).toEqual({
-			content: [{ type: "text", text: "connection refused" }],
+			content: [{ type: "text", text: "It broke: connection refused" }],
 			isError: true,
 		});
 	});
@@ -151,10 +157,10 @@ describe("registerOperations", () => {
 		expect((await call(search, { query: "b" }, "/sessions/b")).details).toEqual({ folder: "/sessions/b" });
 	});
 
-	test("a call to an operation without a handler is a tool error naming it", async () => {
+	test("a call to an operation without a handler is a tool error naming it, in the catalog's words", async () => {
 		const { fetch: _fetch, ...withoutFetch } = idle;
 		expect(await call(tool(registered(withoutFetch), "fetch_page"), { url: "https://x" })).toEqual({
-			content: [{ type: "text", text: "no handler for operation fetch (tool fetch_page)" }],
+			content: [{ type: "text", text: "It broke: no handler for operation fetch (tool fetch_page)" }],
 			isError: true,
 		});
 	});

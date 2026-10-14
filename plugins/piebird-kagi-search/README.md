@@ -7,7 +7,7 @@ of its own, keeps your Kagi session and talks to Kagi. It adds the `kagi` skill 
 mode, signing in, the vault's command as a fallback) and one setting: how much your agent relies
 on Kagi over its own web search.
 
-[![omp answers a question about this week's software with Kagi search](../../demos/piebird-kagi-search/demo.webp)](../../demos/piebird-kagi-search/demo.mp4)
+[![omp, Claude Code and Codex each answer a question about this week's software with Kagi search](../../demos/piebird-kagi-search/demo.webp)](../../demos/piebird-kagi-search/demo.mp4)
 
 ## Install
 
@@ -32,7 +32,9 @@ history would keep it.
 The session is kept in your system's secret store: the macOS Keychain, Windows Credential
 Manager, or your keyring (the Secret Service) on Linux, and where Linux runs no keyring, a file
 only you can read (`piebird/kagi-vault/secrets.json` in your config folder). On macOS, only the
-vault reads it without asking you. `KAGI_SESSION_TOKEN` overrides it, for CI and containers.
+vault reads it without asking you. `KAGI_SESSION_TOKEN` overrides it, for CI and containers,
+except in Codex and ChatGPT: they pass a plugin's program only a few variables of their own
+(`HOME`, `PATH` and the like), so there the vault uses the session it keeps.
 `native/kagi-vault status` says whether the session works; `native/kagi-vault sign-out` forgets it.
 On Windows and Linux, any program running as you can read it from the store; what the vault
 guards, and what it can't, is in [Security](../../docs/security.md).

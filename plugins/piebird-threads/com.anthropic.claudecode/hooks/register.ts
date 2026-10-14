@@ -62,7 +62,8 @@ export const register: Register = (on, options) => {
 	on("prompt.context", async ($, e, next) => {
 		const r = await next(e);
 		const rule = ruleText(await $.fs.read(`${$.plugin.root}/rules/threads.md`));
-		const at = { choice: options.folder, last: undefined, now: Date.now() / 1000 };
+		// Claude Code reads plugin options from the person's settings only, never a project's.
+		const at = { choice: { person: options.folder }, last: undefined, now: Date.now() / 1000 };
 		// A list that can't be read leaves the rule alone in the block.
 		const list = await threadsUpdate(ioOf($), await placeOf($), at).catch(() => undefined);
 		const text = joinText(list === undefined ? [rule] : [rule, list], "paragraph");

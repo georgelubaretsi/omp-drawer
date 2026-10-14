@@ -14,13 +14,13 @@ setup = Set up a temporary OMP agent variant when the user asks to launch, run, 
 
 ## The tool's answers.
 
-blocked = Project write not approved. Check repository instructions and status before creating .omp agent configuration.
+blocked = Project write not approved. Check that the repository's instructions allow writing .omp agent configuration (`git ls-files -- '*AGENTS.md' '*CLAUDE.md'` lists them; none means nothing forbids it), and that .omp has no changes not committed (`git status --short -- .omp`): if it has, tell the user and stop, since the tool won't write over them. Otherwise call agent_variant_setup again with projectWriteApproved: true. Don't edit .omp files yourself or move the variant to another scope to get around this.
 approval = { $available ->
         [none] {""}
        *[other] Free/subscription routes available: { $available }.{" "}
     }Explicit approval is required before configuring paid per-token routes:
 approval-route = { $selector }: input { $input }, output { $output }, cache read { $cacheRead }, cache write { $cacheWrite }
-configured = Configured temporary { $sourceAgent } variant { $targetName } using { $selectors }. Use agent “{ $targetName }” for the user's original request.
+configured = Configured temporary { $sourceAgent } variant { $targetName } using { $selectors }. Use agent “{ $targetName }” for the user's original request. The variant is ready as it is: set it up again only when the user asks for a change.
 join-comma = { $a }, { $b }
 join-arrow = { $a } → { $b }
 # The description written into the variant's agent file, which agents read when they pick one.
@@ -28,6 +28,9 @@ variant = Temporary { $sourceAgent } variant for { $model }
 
 ## What each error means.
 
+# The tool's own code failing (a bug, an unexpected error), and arguments its schema doesn't take.
+error-crashed = agent_variant_setup failed: { $cause }
+error-arguments = The arguments don't fit agent_variant_setup: { $problem }
 error-agent-not-found = Agent “{ $name }” was not found in project, user, or bundled agent definitions.
 error-bad-config = Invalid .omp/config.yml: { $error }
 error-bad-frontmatter = Invalid agent frontmatter: { $error }
@@ -46,5 +49,5 @@ error-not-temporary = { $path } already exists and is not a temporary agent vari
 error-other-variant = { $name } belongs to a different temporary source or role.
 error-persistent-override = Agent { $agent } has a persistent model override that would bypass its temporary role.
 error-role-exists = Model role { $role } already exists.
-error-uncommitted = Target OMP configuration has uncommitted changes; refusing to overwrite user work.
+error-uncommitted = Target OMP configuration has uncommitted changes; refusing to overwrite user work. Tell the user, who can commit or drop them; don't work around it with another scope or by editing the files yourself.
 error-git-status = Couldn't check the target OMP configuration for uncommitted changes (git status: { $detail }); refusing to write.

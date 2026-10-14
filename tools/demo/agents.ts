@@ -36,14 +36,21 @@ export function textOf(content: unknown): string {
 
 const firstLine = (value: string) => value.trim().split("\n")[0] ?? "";
 
+/**
+ * omp's answer to a call it put off because a background job had finished: the agent takes the
+ * job's result first and calls again if it still needs to. Scheduling, not a failed call.
+ */
+const DEFERRED = "Skipped due to a queued background completion";
+
 function omp(entry: unknown): Event {
 	const message = field(entry, "message");
 	const role = field(message, "role");
 	if (role === "user") return { user: textOf(field(message, "content")) };
-	if (role === "toolResult")
-		return field(message, "isError") === true
-			? { errors: [{ id: text(field(message, "toolCallId")), text: firstLine(textOf(field(message, "content"))) }] }
-			: {};
+	if (role === "toolResult") {
+		const said = firstLine(textOf(field(message, "content")));
+		const failed = field(message, "isError") === true && !said.startsWith(DEFERRED);
+		return failed ? { errors: [{ id: text(field(message, "toolCallId")), text: said }] } : {};
+	}
 	if (role !== "assistant") return {};
 	const calls = blocks(field(message, "content"))
 		.filter(part => field(part, "type") === "toolCall")

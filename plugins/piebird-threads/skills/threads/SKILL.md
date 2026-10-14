@@ -11,11 +11,11 @@ A thread is a plain Markdown file that carries one line of work across sessions:
 
 The open-threads list needs these parts; the rest of the file is free.
 
-- The folder is the plugin's `folder` setting, in the project's `.agents/piebird/settings.json` as `{"piebird-threads": {"folder": "<path>"}}`, relative to the project; a project may name it in `.omp/threads.json` as `{"folder": "<path>"}` instead. The open-threads list names the folder it read, so look these files up only to change it; most projects have only one of the two. If the project names none, ask the user where threads should live, and add the setting with the first thread.
+- The folder is the one the open-threads list names ("Open threads in threads/", "No open threads in threads/"): write there, with no need to read any setting. The list reads it from the plugin's `folder` setting, in the project's `.agents/piebird/settings.json` as `{"piebird-threads": {"folder": "<path>"}}`, relative to the project, or from `.omp/threads.json` as `{"folder": "<path>"}`; most projects have only one of the two, so open them only to change the folder. If the list says no folder is named, ask the user where threads should live, and add the setting with the first thread.
 - One `.md` file per open thread, directly in that folder; move it to `done/` when finished.
 - Front matter with `next` (the next concrete step) and `area` (where the design lives, or `none`), one line each. Quote a value that contains `: `.
 - Questions waiting on the user are `- ` items under `## Open questions for you`.
-- Status isn't written anywhere: the list works it out from the folder, those questions and git. A thread with no commit for 10 days drops out of the list until it changes again.
+- Status isn't written anywhere: the list works it out from the folder, those questions and git, afresh before each prompt, so it already answers which threads are open and which wait on the user. A thread with no commit for 10 days drops out of the list (it says how many) until it changes again.
 
 ## The rest is yours
 
@@ -31,4 +31,4 @@ Leave out what git or the code already says.
 
 - Only the main agent writes threads; subagents report to it.
 - Update a thread when its state changes in a way the next session needs, and at the latest before switching topic or ending the session. Commit the update: the list's times come from git.
-- A thread is notes, not proof: before telling the user where something stands, check it against git, CI and running agents.
+- A thread is notes, not proof: before telling the user where a thread's work stands, check it against git, CI and running agents.

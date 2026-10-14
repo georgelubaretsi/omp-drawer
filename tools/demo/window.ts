@@ -1,8 +1,8 @@
 // The demo's Tern window: Tern started with a control endpoint on the sandbox's profile, driven
-// and photographed with `tern ctl` (Tern's developer tooling: `tern help dev`). The window must be
-// signed in (Tern's closed beta) and keep the size the demo asks for: a tiling window manager
-// that resizes it needs DEMO_WINDOW_SETUP, a shell command that floats the window; it runs once
-// the window is open, with DEMO_WINDOW_PID set to the window's process.
+// and photographed with `tern ctl` (Tern's developer tooling: `tern help dev`). The window gets
+// past Tern's sign-in as the sandbox says (Sandbox.gate) and keeps the size the demo asks for: a
+// tiling window manager that resizes it needs DEMO_WINDOW_SETUP, a shell command that floats the
+// window; it runs once the window is open, with DEMO_WINDOW_PID set to the window's process.
 import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -22,16 +22,9 @@ export class TernWindow {
 		this.#proc = proc;
 	}
 
-	/** The environment Tern and `tern ctl` share: the sandbox's profile, daemon and logs. */
+	/** The environment Tern and `tern ctl` share: the recorder's, with the sandbox's on top. */
 	static env(s: Sandbox): Record<string, string | undefined> {
-		return {
-			...process.env,
-			SHELL: s.shell,
-			TERN_CONFIG_DIR: s.tern,
-			TERN_DAEMON_SOCKET: s.daemonSocket,
-			STENCIL_LOG_DIR: s.logs,
-			TMPDIR: s.tmp,
-		};
+		return { ...process.env, ...s.ternEnv };
 	}
 
 	/** Opens the window at `width` × `height` (logical pixels), dark, with the first tab in the project. */
@@ -58,7 +51,9 @@ export class TernWindow {
 	/** Waits for the window and the sign-in, floats it (DEMO_WINDOW_SETUP), sizes and styles it. */
 	async #prepare(width: number, height: number): Promise<void> {
 		for (let i = 0; i < 200 && !existsSync(this.#s.controlSocket); i++) await Bun.sleep(100);
-		if (!(await this.#signedIn())) throw new Error("Tern isn't signed in: sign in to Tern once, then record again");
+		if (this.#s.gate === "hidden") await this.#hideGate();
+		if (!(await this.#gateIs(g => g.signed_in === true)))
+			throw new Error("Tern isn't signed in: sign in to Tern once, then record again");
 		const setup = process.env.DEMO_WINDOW_SETUP;
 		if (setup) {
 			const env = { ...process.env, DEMO_WINDOW_PID: String(this.#proc.pid) };
@@ -69,15 +64,24 @@ export class TernWindow {
 		await this.ctl("css", "demo", HIDE_PEERS);
 	}
 
-	/** Whether Tern's sign-in gate opens; it checks the keychain after the window starts. */
-	async #signedIn(): Promise<boolean> {
+	/** Waits up to 15 s for the sign-in gate (`tern ctl state`'s `gate`) to match `test`. */
+	async #gateIs(test: (gate: Record<string, unknown>) => boolean): Promise<boolean> {
 		for (let i = 0; i < 60; i++) {
 			const state = await this.ctl("state").catch(() => undefined);
 			const gate: unknown = state && typeof state === "object" ? Reflect.get(state, "gate") : undefined;
-			if (gate && typeof gate === "object" && Reflect.get(gate, "signed_in") === true) return true;
+			if (gate && typeof gate === "object" && test(Object.fromEntries(Object.entries(gate)))) return true;
 			await Bun.sleep(250);
 		}
 		return false;
+	}
+
+	/**
+	 * Hides the sign-in sheet without signing in (`account signed-in`, Tern's script command for
+	 * screenshots), once Tern has looked for an account: hidden earlier, the sheet would come back.
+	 */
+	async #hideGate(): Promise<void> {
+		await this.#gateIs(g => g.phase === "signed-out" || g.signed_in === true);
+		await this.ctl("account", "signed-in", "piebird");
 	}
 
 	/** Resizes the window and checks that the size holds. */

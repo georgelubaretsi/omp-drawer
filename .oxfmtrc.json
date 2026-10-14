@@ -10,5 +10,5 @@
   "arrowParens": "avoid",
   "bracketSameLine": false,
   "bracketSpacing": true,
-  "ignorePatterns": ["reference/**", "kit/*/vendor/**", "plugins/*/kit/*/vendor/**"]
+  "ignorePatterns": ["reference/**", "kit/*/vendor/**", "plugins/*/kit/*/vendor/**", "plugins/*/vendor/**"]
 }

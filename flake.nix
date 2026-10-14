@@ -13,12 +13,34 @@
         "x86_64-linux"
       ];
       forAllSystems = nixpkgs.lib.genAttrs systems;
-      pkgsFor = system: import nixpkgs { inherit system; };
+      pkgsFor =
+        system:
+        import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
     in
     {
-      packages = forAllSystems (system: {
-        default = (pkgsFor system).bun;
-      });
+      packages = forAllSystems (
+        system:
+        let
+          pkgs = pkgsFor system;
+        in
+        {
+          default = pkgs.bun;
+          # What the demo machine (tools/demo/vm/machine.pkr.hcl) runs the recorder with, besides
+          # omp and Tern: Bun for the recorder and omp's plugin installs, ffmpeg for the videos,
+          # Git for the demo projects (macOS has only a stub until the developer tools are installed).
+          demo-machine = pkgs.buildEnv {
+            name = "piebird-demo-machine";
+            paths = [
+              pkgs.bun
+              pkgs.ffmpeg-headless
+              pkgs.git
+            ];
+          };
+        }
+      );
 
       devShells = forAllSystems (
         system:
@@ -41,8 +63,16 @@
               # govulncheck is a tool in go.mod, built by that same toolchain.
               pkgs.go_1_27
               pkgs.golangci-lint
-              # Demo videos (bun tools/demo/record.ts): ffmpeg encodes the MP4 and the WebP.
+              # Demo videos (bun tools/demo/record.ts): ffmpeg encodes the MP4 and the WebP;
+              # tesseract reads a video made on this Mac for the login name (tools/demo/onscreen.ts).
               pkgs.ffmpeg-headless
+              pkgs.tesseract
+            ]
+            # Demos recorded in a macOS virtual machine (docs/demos.md): Packer builds its image
+            # with its tart plugin, tart runs it.
+            ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+              pkgs.packer
+              pkgs.tart
             ];
           };
         }

@@ -27,6 +27,8 @@ crash = Always breaks.
 greeted = { $greeting }, { $name }.
 closed = The demo is closed.
 context = Greet people with mcp__piebird-example__greet.
+error-crashed = It broke: { $cause }
+error-arguments = Those arguments don't fit: { $problem }
 `;
 
 const MODEL_GEN = `import { Catalog } from "../kit/core/model";
@@ -39,6 +41,8 @@ type Messages = {
 	greeted: { greeting: string; name: string };
 	closed: undefined;
 	context: undefined;
+	"error-crashed": { cause: string };
+	"error-arguments": { problem: string };
 };
 
 export const model = new Catalog<Messages>(${JSON.stringify(MODEL_FTL)});
@@ -63,7 +67,10 @@ const SOURCE = ${JSON.stringify(JSON.stringify(OPERATIONS))};
 const text = new Map<string, ModelText>();
 for (const id of ["greet", "greet.name", "refuse", "crash"] as const) text.set(id, model.text(id));
 
-export const operations = parseOperations(SOURCE, text);
+export const operations = parseOperations(SOURCE, text, {
+	crashed: cause => model.text("error-crashed", { cause }),
+	badArguments: problem => model.text("error-arguments", { problem }),
+});
 `;
 
 // The greeting from <project>/.greeting, else ~/.greeting, else "Hello"; the name upper-cased by
@@ -158,9 +165,9 @@ test("a declared error comes back as an error", async ($, on) => {
 	expect(await $.tool.call({ tool: "mcp__piebird-example__refuse" })).toEqual({ deny: "The demo is closed." });
 });
 
-test("a handler that throws comes back as an error with its message", async ($, on) => {
+test("a handler that throws comes back as an error in the catalog's words, with its message", async ($, on) => {
 	host(on, {});
-	expect(await $.tool.call({ tool: "mcp__piebird-example__crash" })).toEqual({ deny: "the demo broke" });
+	expect(await $.tool.call({ tool: "mcp__piebird-example__crash" })).toEqual({ deny: "It broke: the demo broke" });
 });
 
 test("a call to another plugin's tool of the same name goes on to Claude Code", async ($, on) => {

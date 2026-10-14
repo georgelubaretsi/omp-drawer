@@ -45,5 +45,9 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- In omp, a project's `.omp/plugin-overrides.json` no longer overrides your own threads folder:
+  it ranks with the project's settings file, below yours.
+- The threads skill starts from the folder the open-threads list names, so the agent writes there
+  without reading the settings first, and answers which threads are open from the list.
 - Renamed from `threads` to `piebird-threads`, one name for the folder, `plugin.json`,
   `package.json` and the catalog: install it as `piebird-threads@piebird`.

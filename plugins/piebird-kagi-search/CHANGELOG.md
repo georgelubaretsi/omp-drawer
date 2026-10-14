@@ -55,10 +55,18 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   the build leaves it out of the Codex manifest for now.
 - [What the model sees](../../docs/model/piebird-kagi-search.md): every text the model gets from
   the plugin, in omp, Claude Code and Codex, from the vault's replies to pages captured from Kagi.
-- README, with a demo video: omp answers a question about this week's software with Kagi search.
+- README, with a demo video: omp, Claude Code and Codex each answer a question about this week's
+  software with Kagi search.
 
 ### Changed
 
+- A tool that fails in the plugin's own code, or gets arguments its schema doesn't take, tells
+  the model so in the plugin's words (`error-crashed`, `error-arguments` in `core/model.ftl`).
+- In omp, a project's `.omp/plugin-overrides.json` no longer overrides your own choice of "Search
+  with Kagi": it ranks with the project's settings file, below yours.
+- The program no longer takes `-agent search=<choice>`: it reads the settings files.
+- `kagi_news` names its common categories (World, Technology, Science, Business, Sports), so an
+  agent asks for one without listing them first.
 - Renamed from `kagi` to `piebird-kagi-search`, one name for the folder, `plugin.json`,
   `package.json` and the catalog: install it as `piebird-kagi-search@piebird`. omp and Claude
   Code name its tools after the plugin, so their names change with it.
@@ -70,6 +78,9 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 - The sign-in page ends as soon as you're done; it could keep the vault waiting 5 more seconds
   when the browser had opened a connection ahead of time.
+- When Kagi refuses the session in `KAGI_SESSION_TOKEN`, a search no longer opens the sign-in
+  page and waits for you: the variable comes before a kept session, so signing in couldn't fix
+  it. The tools and `native/kagi-vault status` say to put a current token in it or remove it.
 - A new omp session applies its own project's setting: web_search comes back where Kagi is only
   offered after a session that hid it, and a Kagi failure in one session no longer keeps
   web_search out in front in the next. web_search you turned off yourself stays off.

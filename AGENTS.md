@@ -32,10 +32,10 @@ for any user, with no project, client, host or person names and no personal path
   Claude Code manifest at it. Its tests run with `claude plugin test com.anthropic.claudecode`.
 - `catalog.json`: the plugin list and hosts; the build generates the manifests from it.
 - `CHANGELOG.md`: this repo's own changes (tooling, catalog, docs, CI), in monthly sections.
-- `demos/<name>/`: each plugin's demo: `scenario.ts` (what happens on screen), the video
-  (`demo.mp4`, and `demo.webp` for its README) and `report.md` (what the agent did for each
-  prompt). `demos/shop-api.ts` is the made-up project they work in; `tools/demo/` records them
-  ([Demos](docs/demos.md)).
+- `demos/<name>/`: each plugin's demo, and `demos/<name>/<feature>/` its feature demos:
+  `scenario.ts` (what happens on screen), the video (`demo.mp4`, and `demo.webp` for its README)
+  and `report.md` (what the agent did for each prompt). `demos/shop-api.ts` is the made-up project
+  they work in; `tools/demo/` records them ([Demos](docs/demos.md)).
 - `cmd/<program>/`: a plugin's vault, Go `package main`, named by its catalog entry (`program`):
   the signed program that keeps the plugin's secrets and performs the operations that need them
   (`core/operations.json`, `vault: true`), with its golden replies (`testdata/`) and the
@@ -72,7 +72,7 @@ Run in the dev shell (`nix develop`):
     bun run lint          # oxlint and golangci-lint; Luau: `selene plugins`, `stylua --check plugins`
     bun run fmt           # oxfmt and Go's formatters; `bun run fmt:check` only checks
     bun tools/sync-references.ts [tern | omp | agent-plugins | claude-code | codex | mcp ...]   # refresh reference/
-    bun tools/demo/record.ts <plugin> [--no-video]   # record a demo (macOS, Tern signed in)
+    bun tools/demo/vm/run.ts <demo>... [--no-video]   # record demos in the demo machine (docs/demos.md)
     bun tools/installer.ts [--platform macos-arm64 | macos-x64 | windows-x64]   # the desktop installer, into dist/installer/
 
 ## Workflow
@@ -98,8 +98,10 @@ Run in the dev shell (`nix develop`):
   fetch it with `bun tools/sync-references.ts mcp` when missing, and refresh it when the MCP
   section of `reference/SYNCED.md` is over 7 days old.
 - A pull request that adds or changes what a plugin does includes its demo video: adjust
-  `demos/<plugin>/scenario.ts` when the change shows on screen, record it again and link the
-  video in the pull request. A plugin whose catalog hosts list several agents shows each of
+  `demos/<plugin>/scenario.ts` when the change shows on screen, record it again, and post the
+  video in a comment on the pull request yourself: `gh pr comment <pr> --body-file <file>
+  --attach <demo.mp4>`, with `![](<demo.mp4>)` alone on its line in the body, so GitHub shows a
+  player. Videos never go into git. A plugin whose catalog hosts list several agents shows each of
   them doing the same task: omp and Claude Code on Claude Haiku 5.5, Codex on gpt-6.1-sol. Its
   `report.md` shows no failed tool calls and no detours: an agent that stumbles means the plugin
   explains itself badly, so fix the skill, rule, tool description or error text, not the prompt.
@@ -168,6 +170,9 @@ Run in the dev shell (`nix develop`):
   Safe path: extend `tools/build/consumers.test.ts`, not a copy of the consumer's rules.
 - Path containment is lexical, through `isOutside` in `tools/build/paths.ts`.
   Safe path: call `isOutside`; don't add symlink resolution (links are rejected first).
+- omp installs no packages for a marketplace plugin: an omp extension imports by name only
+  `@oh-my-pi/`, `node:` and Bun's own modules (`ompImportProblems` in `tools/build/purity.ts`).
+  Safe path: declare a library in the plugin's `vendor.json`; the build copies it into `vendor/`.
 
 ## More detail
 

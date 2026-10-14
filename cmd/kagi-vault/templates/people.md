@@ -15,7 +15,7 @@ paste-link: "Paste your Kagi Session Link and press Enter: "
 status:
   none: "Not signed in to Kagi: no session is kept."
   signed-in: "Signed in to Kagi; the session comes from {{.From}}."
-  refused: "Kagi refuses the session from {{.From}} ({{.Problem}}): sign in again."
+  refused: "Kagi refuses the session from {{.From}} ({{.Problem}}): {{if .Env}}put the token from your current Session Link in {{.Env}}, or remove {{.Env}} and sign in{{else}}sign in again{{end}}."
 fail: "kagi-vault: {{.Cause}}"
 errors:
   not-kagi-link: That isn't a Kagi link; copy the Session Link from Kagi's settings.

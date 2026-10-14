@@ -15,6 +15,6 @@ const surroundings = { io: bunIo(), place, windows: process.platform === "win32"
 
 await runProgram(process.argv.slice(2), {
 	name: NAME,
-	parts: agent => kagiParts(agent, surroundings),
+	parts: () => kagiParts(surroundings),
 	settings: declared,
 });

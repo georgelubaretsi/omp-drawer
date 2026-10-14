@@ -2,6 +2,7 @@
 // handler for it. The build copies kit/ into each plugin that needs it (plugins/<name>/kit/); edit
 // it in kit/.
 import type { Handlers, Operations, Outcome, Tool } from "../core/operations";
+import { crashText } from "../core/operations";
 
 export interface ToolResult {
 	content: { type: "text"; text: string }[];
@@ -55,7 +56,12 @@ function approvalOf(hints: Tool["hints"]): OmpTool<unknown>["approval"] {
 	return hints.readOnly === true ? "read" : "write";
 }
 
-function definition<C>(id: string, tool: Tool, handlersFor: HandlersFor<C>): OmpTool<C> {
+function definition<C>(
+	operations: Operations,
+	op: Operations["tools"][number],
+	handlersFor: HandlersFor<C>,
+): OmpTool<C> {
+	const { id, tool } = op;
 	return {
 		name: tool.name,
 		label: tool.name,
@@ -71,8 +77,7 @@ function definition<C>(id: string, tool: Tool, handlersFor: HandlersFor<C>): Omp
 				// The call's signal aborts when the person cancels it.
 				return resultOf(await handlers[id](params, signal));
 			} catch (error) {
-				const text = error instanceof Error ? error.message : String(error);
-				return { content: [{ type: "text", text }], isError: true };
+				return { content: [{ type: "text", text: crashText(operations, error).text }], isError: true };
 			}
 		},
 	};
@@ -80,9 +85,9 @@ function definition<C>(id: string, tool: Tool, handlersFor: HandlersFor<C>): Omp
 
 /**
  * Registers one omp tool per operation in `operations.tools`. Each call is performed by the
- * handler for its operation (keyed by operation id) among `handlersFor(ctx)`; an operation
- * without one answers with a tool error naming it.
+ * handler for its operation (keyed by operation id) among `handlersFor(ctx)`; a handler that
+ * throws, or an operation without one, answers with the catalog's error-crashed.
  */
 export function registerOperations<C>(pi: ToolHost<C>, operations: Operations, handlersFor: HandlersFor<C>): void {
-	for (const op of operations.tools) pi.registerTool(definition(op.id, op.tool, handlersFor));
+	for (const op of operations.tools) pi.registerTool(definition(operations, op, handlersFor));
 }

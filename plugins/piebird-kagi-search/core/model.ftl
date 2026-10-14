@@ -28,7 +28,7 @@ news-search = Search the News tab of kagi.com: articles with their source and ag
     .limit = Results to return (default 10)
     .format = { format-argument }
 news = Today's Kagi News stories in a category, each summarized with its sources.
-    .category = A category id or name from kagi_news_categories (default world)
+    .category = A category's name or id, such as World, Technology, Science, Business or Sports; kagi_news_categories lists all of today's (default world)
     .lang = { lang-argument }
     .limit = Stories to return (default 10)
     .hide = Stories to leave out: preset ids from kagi_news_filter_presets, or keywords
@@ -124,6 +124,9 @@ source = { $kind ->
 
 ## What each error means.
 
+# A tool's own code failing (a bug, an unexpected error), and arguments its schema doesn't take.
+error-crashed = the plugin failed: { $cause }
+error-arguments = the arguments don't fit this tool: { $problem }
 error-bad-input = the arguments don't fit this tool: { $cause }
 error-failed = the plugin's vault failed: { $cause }
 error-vault = the plugin's vault (its program that keeps the Kagi session) didn't answer: { $detail }
@@ -144,6 +147,7 @@ error-sign-in-needed = Kagi needs a sign-in ({ $why ->
         [no] The browser didn't open ({ $problem }). Ask the person to open { $page } on this computer and follow it, then call this tool again.
        *[no-page] The sign-in page couldn't start ({ $problem }).
     } Without a browser on this computer: `"{ $vault }" sign-in --link` in a terminal, then paste the link from https://kagi.com/settings/user_details when it asks.
+error-env-session-refused = Kagi doesn't accept the session in { $env }, which is set where this agent runs and comes before a kept session, so signing in won't help. Ask the person to put the token from their current Kagi Session Link (https://kagi.com/settings/user_details) in { $env }, or to remove { $env } and sign in.
 error-secret-store = cannot { $doing ->
         [save] save
         [forget] remove

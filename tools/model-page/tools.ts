@@ -23,12 +23,16 @@ export interface ToolShape {
 }
 
 /** The tool as the model gets it, with the catalog messages of its description and arguments. */
-export function describedTool(tool: ToolShape, operations: Operations, shown: "always" | "on search"): Seen {
+export function describedTool(
+	tool: ToolShape,
+	operations: Operations | undefined,
+	shown: "always" | "on search",
+): Seen {
 	const properties = record(record(tool.schema)?.properties) ?? {};
 	const parameters = Object.fromEntries(
 		Object.entries(properties).map(([name, schema]) => [name, textOf(record(schema)?.description)]),
 	);
-	const op = operations.tools.find(o => o.tool.name === tool.plain);
+	const op = operations?.tools.find(o => o.tool.name === tool.plain);
 	const ids = op === undefined ? [] : [op.id, ...Object.keys(parameters).map(name => `${op.id}.${name}`)];
 	return { kind: "tool", name: tool.name, description: tool.description, parameters, shown, ids };
 }

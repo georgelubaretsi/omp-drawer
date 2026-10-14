@@ -15,13 +15,15 @@ You are in Tern when `TERM_PROGRAM=tern`; `$TERN_PANE` is your pane. Tern alread
 - `tern` CLI (bash): panes and processes. `tern ls|inspect|split|run|send|capture|close|…`, `--json` on every command; syntax from `tern help` and `tern COMMAND --help`.
 - `tern_lua` tool (macOS and Linux, panes on the machine showing the window): everything else, as Lua in the Tern window holding your pane, with `cx` (the window API Carly has). Not offered in a remote host's panes: Tern never lets a remote host run code in your window.
   - The calls below cover common work; reach for the rest only when they don't. Exact API of the installed build: `d=$(mktemp -d) && tern plugin types "$d"`, then read `WindowCx` and the `*Cx` types in `$d/tern.d.luau`. Docs: https://docs.stencil.so/tern/reference/api-window.md (every docs page also exists as `.md`).
-  - `cx` and its parts (`cx.layout`, `cx.session`, …) are userdata: `pairs` can't list them. Lua here is Luau without `os.getenv`: write your pane id (`$TERN_PANE`, from bash) and paths into the code.
+  - `cx` and its parts (`cx.layout`, `cx.session`, …) are userdata: `pairs` can't list them. Lua here is Luau without `os.getenv`: read your pane id with bash first (`echo $TERN_PANE`) and write it into the code as a number, with any paths; `"$TERN_PANE"` in Lua is only text.
   - The first returned value comes back as JSON. Return an Awaitable (a `kind` string and a `:next` method, like `tern.sleep(ms)`) and the tool waits for it. One Awaitable per call; there is no `await`, so make dependent steps separate calls.
   - `state` is a table kept between calls (per window, until a plugin reload); `print` output is returned. When your session shows in several Tern windows, your calls stay in the window that answered first while it stays open.
   - Tern stops a call whose synchronous part runs past 50 ms, which also disables the bridge in that window; the tool reports the outcome as unknown and reloads Tern's plugins (resetting `state`). Return slices or counts, not whole trees; put slow work in `tern.process.run` (it returns an Awaitable).
   - "Outcome unknown" means the code may have run: check the state it touches before running anything again.
 
 ## Common calls
+`P` is a pane id, a number: yours is `$TERN_PANE`, others come from `cx.session:panes()`.
+
 | Want | `tern_lua` code |
 | --- | --- |
 | Tern agents with `state` (`idle`, `working`, `waiting_input`, `exited`) | `return cx.agents:list()` |
@@ -33,6 +35,7 @@ You are in Tern when `TERM_PROGRAM=tern`; `$TERN_PANE` is your pane. Tern alread
 | Read any block (terminal, file, git, SQLite, notebook, board, browser) | `return cx.session:read(P, {lines = 40, as = "text"})` |
 | Panes in this window: `pane` id, `kind`, `title`, `tab`, `focused`, `cwd` | `return cx.session:panes()` |
 | Open a file or URL beside the focused pane, keeping focus | `cx:open("/path/file.ts", "beside", {focus = false})` |
+| Open a file in a new tab (Markdown shows rendered); `"replace"` opens it in place of the focused block | `cx:open("/path/doc.md", "tab")` |
 | Split a pane and run a command in the new shell, keeping focus (`"down"` splits below) | `local p = cx.layout:split(P, "right", {cwd = "/path"}, {focus = false}); cx:run(p, "ls src\r"); return p` |
 | Type into a shell pane; `\r` runs the line | `cx:run(P, "npm test\r")` |
 | Close a pane | `cx.layout:close(P)` |

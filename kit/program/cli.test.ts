@@ -71,7 +71,7 @@ const INITIALIZE = {
 const INITIALIZED = { jsonrpc: "2.0", method: "notifications/initialized" };
 const ECHO = { jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "echo", arguments: { text: "hi" } } };
 
-const USAGE_START = "Usage: fixture <command> [-agent key=value]...\n";
+const USAGE_START = "Usage: fixture <command>\n";
 
 /** A hook event, about a call of `tool` when there is one. */
 function event(name: string, tool?: string): string {
@@ -88,7 +88,7 @@ describe("runProgram", () => {
 	});
 
 	test("a command line it doesn't take exits 2 with the usage message", async () => {
-		for (const args of [[], ["serve"], ["mcp", "extra"], ["call"], ["mcp", "-agent", "novalue"]]) {
+		for (const args of [[], ["serve"], ["mcp", "extra"], ["call"], ["mcp", "-agent", "style=loud"]]) {
 			const ran = await run(fixture(...args));
 			expect({ args, exitCode: ran.exitCode, stdout: ran.stdout }).toEqual({ args, exitCode: 2, stdout: "" });
 			expect(ran.stderr).toContain(USAGE_START);
@@ -150,16 +150,15 @@ describe("runProgram", () => {
 		expect({ exitCode: broken.exitCode, stdout: broken.stdout }).toEqual({ exitCode: 1, stdout: "" });
 	});
 
-	test("mcp serves with the agent's own settings until stdin closes", async () => {
-		const { answers, exitCode } = await serve(fixture("mcp", "-agent", "style=loud"), [
-			INITIALIZE,
-			INITIALIZED,
-			ECHO,
-		]);
+	test("mcp serves until stdin closes", async () => {
+		const { answers, exitCode } = await serve(fixture("mcp"), [INITIALIZE, INITIALIZED, ECHO]);
 		expect(answers).toMatchObject([
 			{
 				id: 1,
-				result: { serverInfo: { name: "fixture", version: "1.2.3" }, instructions: "Use echo, in the loud style." },
+				result: {
+					serverInfo: { name: "fixture", version: "1.2.3" },
+					instructions: "Use echo, in the plain style.",
+				},
 			},
 			{ id: 2, result: { content: [{ type: "text", text: "hi" }] } },
 		]);

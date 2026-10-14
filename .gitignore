@@ -20,3 +20,7 @@ result
 
 # Installers and release archives, built by tools/installer.ts and tools/release.ts
 /dist/
+
+# Demo videos, recorded by tools/demo/: posted to pull requests, never committed (AGENTS.md)
+/demos/**/demo.mp4
+/demos/**/demo.webp

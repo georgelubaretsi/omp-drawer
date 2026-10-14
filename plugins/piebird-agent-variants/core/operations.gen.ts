@@ -19,4 +19,7 @@ text.set("setup.subscriptionProviders", model.text("setup.subscriptionProviders"
 text.set("setup.targetName", model.text("setup.targetName"));
 text.set("setup.thinking", model.text("setup.thinking"));
 
-export const operations = parseOperations(SOURCE, text);
+export const operations = parseOperations(SOURCE, text, {
+	crashed: cause => model.text("error-crashed", { cause }),
+	badArguments: problem => model.text("error-arguments", { problem }),
+});

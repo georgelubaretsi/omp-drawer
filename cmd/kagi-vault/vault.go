@@ -124,7 +124,8 @@ func (v *vault) signInFlow() *signin.Flow {
 
 // withSession calls fn with the session's client. When Kagi wants a sign-in, it reads the session
 // again (another run may have signed in), else it opens the sign-in page in the person's browser,
-// waits for them a while, and calls fn again once they're signed in.
+// waits for them a while, and calls fn again once they're signed in. A session from the
+// environment gets no page: the variable comes before a kept session, so a sign-in can't help.
 func withSession[R any](ctx context.Context, v *vault, fn func(*kagi.Client) (R, error)) (R, error) {
 	var none R
 	c, err := v.kagi()
@@ -143,6 +144,9 @@ func withSession[R any](ctx context.Context, v *vault, fn func(*kagi.Client) (R,
 			return out, err
 		}
 	}
+	if env := v.envSource(); env != "" {
+		return none, ops.Fail("env-session-refused", map[string]any{"env": env})
+	}
 	flow := v.signInFlow()
 	defer flow.Close()
 	url, openErr := flow.Start()
@@ -153,6 +157,16 @@ func withSession[R any](ctx context.Context, v *vault, fn func(*kagi.Client) (R,
 		return none, err
 	}
 	return none, v.signInNeeded(err, url, openErr)
+}
+
+// envSource is the environment variable the session in use comes from; empty when it is kept.
+func (v *vault) envSource() string {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	if v.from.Kind != "env" {
+		return ""
+	}
+	return v.from.Env
 }
 
 // signInNeeded is the declared error sign-in-needed: why (no-session or signed-out), and how the

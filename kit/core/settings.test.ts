@@ -50,6 +50,25 @@ describe("each setting's value, by level", () => {
 		expect(values({ project, user, agent: { mode: "first" } })).toMatchObject({ mode: "first (agent)" });
 	});
 
+	test("an agent's choice kept in the project ranks with the project's file: over it, below the person", () => {
+		const project = { demo: { mode: "only", greeting: "from the repo" } };
+		const agentProject = { mode: "offered", folder: "repo-notes" };
+		expect(values({ project, agentProject })).toMatchObject({
+			mode: "offered (project)",
+			greeting: "from the repo (project)",
+			folder: "repo-notes (project)",
+		});
+		const user = { demo: { mode: "first", folder: "my-notes" } };
+		expect(values({ project, agentProject, user })).toMatchObject({
+			mode: "first (user)",
+			folder: "my-notes (user)",
+		});
+		expect(values({ agentProject: { mode: "sideways" } })).toMatchObject({ mode: "first (default)" });
+		expect(resolve({ agentProject: { mode: "sideways" } }).problems).toEqual([
+			{ level: "project", key: "mode", issue: "not-a-choice" },
+		]);
+	});
+
 	test("an agent's shared choice, an empty text, or none, follows the files", () => {
 		const user = { demo: { mode: "only", greeting: "from me" } };
 		expect(values({ user, agent: { mode: SHARED, greeting: "" } })).toMatchObject({

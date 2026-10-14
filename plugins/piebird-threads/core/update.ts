@@ -4,6 +4,7 @@
 // agent with no rules of its own gets the plugin's rule with the list.
 import type { Io, Place } from "../kit/core/io";
 import type { ModelText } from "../kit/core/model";
+import type { AgentChoice } from "../kit/core/settings";
 import { parseRule } from "../kit/core/rules";
 import { threadsFolder } from "./folder";
 import { threadsList } from "./list";
@@ -16,7 +17,7 @@ import { model } from "./model.gen";
 export async function threadsUpdate(
 	io: Io,
 	place: Place,
-	at: { readonly choice: unknown; readonly last: unknown; readonly now: number },
+	at: { readonly choice?: AgentChoice; readonly last: unknown; readonly now: number },
 ): Promise<ModelText | undefined> {
 	const folder = await threadsFolder(io, place, at.choice);
 	if (folder === undefined) {

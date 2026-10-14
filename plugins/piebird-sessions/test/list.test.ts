@@ -55,12 +55,21 @@ describe("session_read without a session", () => {
 		);
 	});
 
-	test("says when the folder holds no sessions, and refuses other parameters", async () => {
+	test("says when the folder holds no sessions, and refuses parameters other than find", async () => {
 		sessions = new Sessions();
 		expect(await sessions.read({})).toEqual([`No sessions in ${sessions.folder}.`]);
-		expect(await failure(sessions.read({ find: "cache" }))).toBe(
-			"without a session, session_read lists this project's sessions and takes nothing else: give a session to read it",
-		);
+		expect(await failure(sessions.read({ user: true }))).toContain("give a session");
+	});
+
+	test("with find, lists the sessions to search, after how to search one", async () => {
+		sessions = new Sessions();
+		sessions.write("01a0aaaa", [message(1, "user", "cache the products")], stamp(1));
+
+		const lines = await sessions.read({ find: "products cache" });
+
+		expect(lines[0]).toContain('find "products cache"');
+		expect(lines[1]).toBe(`Sessions in ${sessions.folder}, newest first:`);
+		expect(lines[2]).toStartWith(`- ${id("01a0aaaa")} `);
 	});
 });
 

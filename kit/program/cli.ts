@@ -9,9 +9,6 @@ import { readHookInput } from "./hook";
 import { serveMcp } from "./mcp";
 import { runSettingsPage } from "./settings";
 
-/** The agent's own settings screen, by key, as `-agent key=value` passes it. */
-export type AgentChoices = Readonly<Record<string, string>>;
-
 export interface Parts extends McpOptions {
 	/** Answers a Codex hook event; a program without hooks has none. */
 	readonly hook?: (input: HookInput) => Promise<HookAnswer>;
@@ -21,11 +18,10 @@ export interface Program {
 	/** The program's command name, for its usage message. */
 	readonly name: string;
 	/**
-	 * What the commands work with, made once the command line is read. `agent` holds the
-	 * `-agent key=value` choices of a host whose own settings screen feeds the server's arguments,
-	 * as the `.mcpb` for Claude chat will pass its user_config; Codex passes none.
+	 * What the commands work with, made once the command line is read. The person's settings come
+	 * from their settings files: no host passes the program settings of its own.
 	 */
-	readonly parts: (agent: AgentChoices) => Promise<Parts>;
+	readonly parts: () => Promise<Parts>;
 	/** The plugin's declared settings, for the settings page; none when it has none. */
 	readonly settings?: Declared;
 }
@@ -33,7 +29,6 @@ export interface Program {
 interface Command {
 	readonly name: string;
 	readonly args: readonly string[];
-	readonly agent: AgentChoices;
 }
 
 /** A command line the program doesn't take: exit 2 with the usage message. */
@@ -41,7 +36,7 @@ class UsageError extends Error {}
 
 function usage(name: string): string {
 	return [
-		`Usage: ${name} <command> [-agent key=value]...`,
+		`Usage: ${name} <command>`,
 		"",
 		"Commands:",
 		"  mcp               serve the plugin's tools over MCP on stdin and stdout",
@@ -54,21 +49,8 @@ function usage(name: string): string {
 }
 
 function parse(argv: readonly string[]): Command {
-	const [name = "", ...rest] = argv;
-	const args: string[] = [];
-	const agent: Record<string, string> = {};
-	for (let i = 0; i < rest.length; i++) {
-		const arg = rest[i] ?? "";
-		if (arg !== "-agent" && arg !== "--agent") {
-			args.push(arg);
-			continue;
-		}
-		const choice = rest[++i] ?? "";
-		const eq = choice.indexOf("=");
-		if (eq < 1) throw new UsageError(`-agent takes key=value, not "${choice}"`);
-		agent[choice.slice(0, eq)] = choice.slice(eq + 1);
-	}
-	return { name, args, agent };
+	const [name = "", ...args] = argv;
+	return { name, args };
 }
 
 function expectArgs(command: Command, count: number): void {
@@ -100,14 +82,14 @@ async function dispatch(program: Program, command: Command): Promise<void> {
 		case "mcp":
 			expectArgs(command, 0);
 			// Serves until the client closes stdin; then nothing keeps the process alive.
-			serveMcp(await program.parts(command.agent));
+			serveMcp(await program.parts());
 			return;
 		case "hook":
 			expectArgs(command, 0);
-			return hook(await program.parts(command.agent));
+			return hook(await program.parts());
 		case "call":
 			expectArgs(command, 1);
-			return call(await program.parts(command.agent), command.args[0] ?? "");
+			return call(await program.parts(), command.args[0] ?? "");
 		case "settings":
 			expectArgs(command, 0);
 			if (!program.settings) throw new UsageError("this plugin has no settings");

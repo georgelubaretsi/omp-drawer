@@ -58,11 +58,37 @@ export type Handler = (input: unknown, signal?: CallSignal) => Promise<Outcome>;
 
 export type Handlers = Readonly<Record<string, Handler>>;
 
-export interface Operations {
+/**
+ * What the model reads when a tool can't answer as its operation says, from the plugin's catalog:
+ * `crashed`, error-crashed, when its code fails instead (a bug, an unexpected error), with the
+ * failure's own message; `badArguments`, error-arguments, when the arguments don't fit the tool's
+ * input schema, with what doesn't. A plugin with tools has both (tools/build/operations.ts).
+ */
+export interface ToolWords {
+	readonly crashed: (cause: string) => ModelText;
+	readonly badArguments: (problem: string) => ModelText;
+}
+
+export interface Operations extends ToolWords {
 	readonly byId: ReadonlyMap<string, Operation>;
 	/** The operations the model gets as tools, in declaration order. */
 	readonly tools: readonly (Operation & { readonly tool: Tool })[];
 }
+
+/** The failure `error` as the model reads it: the catalog's error-crashed with its message. */
+export function crashText(operations: Operations, error: unknown): ModelText {
+	return operations.crashed(error instanceof Error ? error.message : String(error));
+}
+
+/** For a plugin without tools: it never needs these words. */
+const NO_TOOLS: ToolWords = {
+	crashed: () => {
+		throw new Error("this plugin has no tools");
+	},
+	badArguments: () => {
+		throw new Error("this plugin has no tools");
+	},
+};
 
 type Fields = Readonly<Record<string, unknown>>;
 
@@ -117,8 +143,15 @@ function toolFor(id: string, op: Fields, text: ReadonlyMap<string, ModelText>): 
 	};
 }
 
-/** The operations in `source` (operations.json without `$schema`), each tool given its text. */
-export function parseOperations(source: string, text: ReadonlyMap<string, ModelText>): Operations {
+/**
+ * The operations in `source` (operations.json without `$schema`), each tool given its text, with
+ * `words` for a tool that can't answer; a plugin without tools needs none.
+ */
+export function parseOperations(
+	source: string,
+	text: ReadonlyMap<string, ModelText>,
+	words: ToolWords = NO_TOOLS,
+): Operations {
 	const parsed: unknown = JSON.parse(source);
 	const byId = new Map<string, Operation>();
 	for (const [id, value] of Object.entries(fields(fields(parsed, "").operations, "/operations"))) {
@@ -135,5 +168,5 @@ export function parseOperations(source: string, text: ReadonlyMap<string, ModelT
 		byId.set(id, tool === undefined ? base : { ...base, tool });
 	}
 	const tools = [...byId.values()].flatMap(op => (op.tool === undefined ? [] : [{ ...op, tool: op.tool }]));
-	return { byId, tools };
+	return { byId, tools, ...words };
 }

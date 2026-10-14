@@ -25,11 +25,21 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   written into a variant) is in `core/model.ftl`; [what the model sees](../../docs/model/piebird-agent-variants.md)
   shows each, word for word.
 - Supported host: omp.
+- Carries its YAML library (`vendor/yaml/`, `yaml` 2, ISC), as omp installs no packages for a
+  marketplace plugin, so it loads installed from the marketplace or the desktop installer.
 - README, with a demo video: omp makes a temporary reviewer on Claude Haiku and hands it a
   review.
 
 ### Changed
 
+- `agent_variant_setup` failing in the plugin's own code tells the model so in the plugin's
+  words (`error-crashed` in `core/model.ftl`).
+- Without project write approval, `agent_variant_setup` says how to check: the repository's
+  instruction files (`git ls-files`) and `git status` on `.omp`; with changes not committed there,
+  as when it refuses to write over them, it says to tell the user rather than work around it
+  (editing `.omp` files itself, or another scope); otherwise, the call to make
+  (`projectWriteApproved: true`). Once configured, it says the variant is ready, to be set up
+  again only when the user asks for a change.
 - Renamed from `agent-variants` to `piebird-agent-variants`, one name for the folder, `plugin.json`,
   `package.json` and the catalog: install it as `piebird-agent-variants@piebird`.
 - A provider you're signed in to with OAuth (a Claude, ChatGPT or Copilot subscription) counts

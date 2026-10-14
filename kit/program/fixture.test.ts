@@ -22,6 +22,8 @@ type Messages = {
 	placed: undefined;
 	"hook-denied": undefined;
 	"hook-context": undefined;
+	"error-crashed": { cause: string };
+	"error-arguments": { problem: string };
 };
 
 export const catalog = new Catalog<Messages>(`
@@ -36,6 +38,8 @@ boom = Throw.
 placed = Where the program runs.
 hook-denied = web.run doesn't search here; use echo.
 hook-context = The echo tool is here.
+error-crashed = It broke: { $cause }
+error-arguments = Those arguments don't fit: { $problem }
 `);
 
 const EMPTY = { type: "object", properties: {}, additionalProperties: false };
@@ -66,7 +70,10 @@ export const OPERATIONS = {
 const texts = new Map(
 	(["echo", "echo.text", "echo.upper", "refuse", "boom"] as const).map(id => [id, catalog.text(id)]),
 );
-export const operations = parseOperations(JSON.stringify(OPERATIONS), texts);
+export const operations = parseOperations(JSON.stringify(OPERATIONS), texts, {
+	crashed: cause => catalog.text("error-crashed", { cause }),
+	badArguments: problem => catalog.text("error-arguments", { problem }),
+});
 
 async function echo(input: unknown): Promise<Outcome> {
 	if (typeof input !== "object" || input === null || !("text" in input) || typeof input.text !== "string") {
@@ -101,7 +108,7 @@ export function parts(style = "plain"): Parts {
 	};
 }
 
-export const program: Program = { name: "fixture", parts: async agent => parts(agent.style) };
+export const program: Program = { name: "fixture", parts: async () => parts() };
 
 /** Writes `<dir>/main.ts`, a program's main.ts that runs the fixture; returns its path. */
 export async function writeMain(dir: string): Promise<string> {

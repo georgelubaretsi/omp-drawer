@@ -57,8 +57,8 @@ export interface Scenario {
 	/** Writes the files the session reads under `home`. */
 	setup(home: string): Promise<Setup>;
 	readonly steps: readonly Step[];
-	/** The plugin's operations and its copy of the catalog's trace (kit/core/model.ts). */
-	readonly operations: Operations;
+	/** The plugin's operations, when it has tools, and its copy of the catalog's trace (kit/core/model.ts). */
+	readonly operations?: Operations;
 	traceMessages<T>(run: () => Promise<T>): Promise<{ value: T; ids: string[] }>;
 	/** The shells, as each harness loads them; a harness the plugin doesn't run in has none. */
 	readonly shells: {

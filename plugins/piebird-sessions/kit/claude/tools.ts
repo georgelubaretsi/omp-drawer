@@ -4,6 +4,7 @@
 // file, so the hooks module makes every call and hands values in and out (kit/claude/io-of.md).
 // The build copies kit/ into each plugin that needs it (plugins/<name>/kit/); edit it in kit/.
 import type { Handlers, Operations, Outcome } from "../core/operations";
+import { crashText } from "../core/operations";
 
 /** What `$.tool.register` takes (Claude Code's `ToolSpec`). */
 export interface ToolSpec {
@@ -63,7 +64,7 @@ export function callResult(outcome: Outcome): CallResult {
 
 /**
  * Performs the call to the tool `tool` (its full name) with its arguments `input`: core's handler
- * for the operation answers, and a handler that throws answers with its message as an error.
+ * for the operation answers, and a handler that throws answers with the catalog's error-crashed.
  * Undefined when no operation is that tool, for the hook to pass the call on.
  */
 export async function dispatch(
@@ -77,10 +78,10 @@ export async function dispatch(
 	const name = tool.startsWith("mcp__") && at > "mcp_".length ? tool.slice(at + 2) : undefined;
 	const op = operations.tools.find(o => o.tool.name === name);
 	if (op === undefined) return undefined;
-	if (!Object.hasOwn(handlers, op.id)) return { deny: `no handler for operation ${op.id}` };
 	try {
+		if (!Object.hasOwn(handlers, op.id)) throw new Error(`no handler for operation ${op.id}`);
 		return callResult(await handlers[op.id](input));
 	} catch (error) {
-		return { deny: error instanceof Error ? error.message : String(error) };
+		return { deny: crashText(operations, error).text };
 	}
 }

@@ -42,6 +42,23 @@ describe("turnFor", () => {
 		expect(done).toEqual({ end: "stop", calls: [{ tool: "web_search", intent: "Searching", error: "no network" }] });
 	});
 
+	test("doesn't count a call omp put off for a finished background job as failed", async () => {
+		const done = await turn("omp", [
+			omp({ role: "user", content: [{ type: "text", text: PROMPT }] }),
+			omp({ role: "assistant", stopReason: "toolUse", content: [{ type: "toolCall", id: "1", name: "wait" }] }),
+			omp({
+				role: "toolResult",
+				toolCallId: "1",
+				isError: true,
+				content: [
+					{ type: "text", text: "Skipped due to a queued background completion (job or supervised process)." },
+				],
+			}),
+			omp({ role: "assistant", stopReason: "stop", content: [{ type: "text", text: "Done" }] }),
+		]);
+		expect(done).toEqual({ end: "stop", calls: [{ tool: "wait", intent: "" }] });
+	});
+
 	test("reads Claude Code's tool_use blocks and is_error results, and waits for end_turn", async () => {
 		const asked = [
 			claude("user", { role: "user", content: PROMPT }),

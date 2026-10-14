@@ -6,15 +6,15 @@ A failed call, or calls the task didn't need, mean the agent stumbled on somethi
 
 | Agent | Prompt | Seconds | Tool calls | Failed |
 | --- | --- | --- | --- | --- |
-| omp | What did I decide about the cart cache in my previous session here? | 7 | 2 | 0 |
+| omp | What did I decide about the cart cache in my previous session here? | 8 | 2 | 0 |
 | omp | Quote my exact words from it, with the session and line. | 4 | 0 | 0 |
-| Claude Code | What did I decide about the cart cache in my previous session here? | 13 | 3 | 0 |
-| Codex | What did I decide about the cart cache in my previous session here? | 26 | 4 | 0 |
+| Claude Code | What did I decide about the cart cache in my previous session here? | 8 | 2 | 0 |
+| Codex | What did I decide about the cart cache in my previous session here? | 16 | 3 | 0 |
 
 ## omp: What did I decide about the cart cache in my previous session here?
 
-1. `session_read`: Listing this project's previous sessions
-2. `session_read`: Reading the prior session's user messages about cart cache
+1. `session_read`: Listing sessions for this project
+2. `session_read`: Reading prior session's user messages about cart cache
 
 ## omp: Quote my exact words from it, with the session and line.
 
@@ -24,11 +24,9 @@ No tool calls.
 
 1. `mcp__piebird-sessions__session_read`: 
 2. `mcp__piebird-sessions__session_read`: 
-3. `mcp__piebird-sessions__session_read`: 
 
 ## Codex: What did I decide about the cart cache in my previous session here?
 
-1. `exec`: text(ALL_TOOLS.filter(x=>/search|session|history|memory/i.test(x.name+" "+x.desc
-2. `exec`: text(ALL_TOOLS.find(x=>/piebird_sessions__session_read/.test(x.name)));
-3. `exec`: text(await tools.mcp__piebird_sessions__session_read({}));
-4. `exec`: text(await tools.mcp__piebird_sessions__session_read({session:"01a13458-7b19-763
+1. `exec`: const ts = ALL_TOOLS.filter(x=>/search|history|session|memory/i.test(x.name+" "+
+2. `exec`: text(await tools.mcp__piebird_sessions__session_read({find:"cart"}));
+3. `exec`: text(await tools.mcp__piebird_sessions__session_read({session:"01a138e5-9bc4-71b

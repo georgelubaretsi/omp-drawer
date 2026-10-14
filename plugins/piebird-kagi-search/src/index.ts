@@ -3,6 +3,7 @@
 // stay out of the way. The model's instructions about searching go into the system prompt.
 import type { ExtensionAPI } from "@oh-my-pi/pi-coding-agent";
 import type { Io } from "../kit/core/io";
+import type { AgentChoice } from "../kit/core/settings";
 import type { Search } from "../core/search";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -25,8 +26,8 @@ export interface Surroundings {
 	/** The plugin's folder, whose native/ holds the vault. */
 	readonly plugin: string;
 	readonly windows: boolean;
-	/** omp's own choice for "search" (`omp plugin config`) in a session working in `cwd`. */
-	ompChoice(cwd: string): string | undefined;
+	/** omp's own choices for "search" (`omp plugin config`) in a session working in `cwd`. */
+	ompChoice(cwd: string): AgentChoice;
 }
 
 export function kagiInOmp(pi: ExtensionAPI, at: Surroundings): void {
@@ -71,6 +72,9 @@ export default function kagiSearch(pi: ExtensionAPI): void {
 		home: homedir(),
 		plugin: join(import.meta.dir, ".."),
 		windows: process.platform === "win32",
-		ompChoice: cwd => ompChoices(PLUGIN, cwd).search,
+		ompChoice: cwd => {
+			const omp = ompChoices(PLUGIN, cwd);
+			return { person: omp.person.search, project: omp.project.search };
+		},
 	});
 }

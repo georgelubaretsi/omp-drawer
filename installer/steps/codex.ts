@@ -18,12 +18,14 @@ const AGENT = "codex";
 /**
  * The mcp.json that runs a plugin's program as its MCP server; Codex refuses one without its
  * $schema. On Windows that's the program's .exe: native/<name> is a POSIX shell starter there.
+ * `env` sets variables for the server, which gets none of Codex's own; the installer sets none.
  */
-export function codexMcpJson(name: string, windows: boolean): PayloadFile {
+export function codexMcpJson(name: string, windows: boolean, env: Record<string, string> = {}): PayloadFile {
 	const command = windows ? `./native/${name}.exe` : `./native/${name}`;
+	const server = { type: "stdio", command, args: ["mcp"], ...(Object.keys(env).length > 0 ? { env } : {}) };
 	const mcp = {
 		$schema: "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
-		mcpServers: { [name]: { type: "stdio", command, args: ["mcp"] } },
+		mcpServers: { [name]: server },
 	};
 	return { path: "mcp.json", mode: 0o644, data: new TextEncoder().encode(`${JSON.stringify(mcp, null, 2)}\n`) };
 }

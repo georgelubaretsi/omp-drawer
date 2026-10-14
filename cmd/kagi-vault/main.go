@@ -151,7 +151,8 @@ func statusCommand(ctx context.Context, v *vault, out io.Writer) error {
 		_, err = fmt.Fprintln(out, says("status.signed-in", text.V{"From": s.From.String()}))
 	default:
 		problem := forPeople(ops.Fail(s.Problem.ID, s.Problem.Variables))
-		_, err = fmt.Fprintln(out, says("status.refused", text.V{"From": s.From.String(), "Problem": problem}))
+		vars := text.V{"From": s.From.String(), "Problem": problem, "Env": s.From.Env}
+		_, err = fmt.Fprintln(out, says("status.refused", vars))
 	}
 	return err
 }

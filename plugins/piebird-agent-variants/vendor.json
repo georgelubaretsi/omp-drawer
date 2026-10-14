@@ -1,0 +1,3 @@
+{
+  "yaml": { "from": "browser/dist", "types": "dist", "to": "vendor/yaml", "license": "ISC" }
+}

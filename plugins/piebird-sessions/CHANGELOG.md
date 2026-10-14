@@ -47,5 +47,9 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- `session_read` failing in the plugin's own code, or getting arguments its schema doesn't take,
+  tells the model so in the plugin's words (`error-crashed`, `error-arguments`).
+- `session_read` with `find` but no session lists the sessions to pick the one to search from,
+  with how to search it, rather than refusing: `find` searches one session.
 - Renamed from `sessions` to `piebird-sessions`, one name for the folder, `plugin.json`,
   `package.json` and the catalog: install it as `piebird-sessions@piebird`.

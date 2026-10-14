@@ -1,8 +1,9 @@
 // omp's own choices for a plugin's settings (`omp plugin config <plugin> set <key> <value>`), the
 // agent level of core's settings (../core/settings.ts). omp gives extensions no way to read them,
-// so they are read where omp writes them: the project's .omp/plugin-overrides.json over the
-// person's plugins lock file, key by key, as omp merges them. The build copies kit/ into each
-// plugin that needs it (plugins/<name>/kit/); edit it in kit/.
+// so they are read where omp writes them: the person's plugins lock file, and the project's
+// .omp/plugin-overrides.json, which a repo can hold, so it ranks with the project's settings file,
+// below the person (omp itself puts it over the person's). The build copies kit/ into each plugin
+// that needs it (plugins/<name>/kit/); edit it in kit/.
 import { readFileSync } from "node:fs";
 import { getPluginsLockfile, getProjectPluginOverridesPath } from "@oh-my-pi/pi-utils";
 
@@ -33,9 +34,15 @@ function choicesIn(text: string | undefined, plugin: string): Record<string, str
 	);
 }
 
-/** omp's choices for `plugin` from the files' texts: the project's over the person's, per key. */
-export function ompChoicesFrom(plugin: string, files: OmpPluginFiles): Record<string, string | undefined> {
-	return { ...choicesIn(files.user, plugin), ...choicesIn(files.project, plugin) };
+/** omp's choices for a plugin: the person's, for every project, and the one project's. */
+export interface OmpChoices {
+	readonly person: Record<string, string>;
+	readonly project: Record<string, string>;
+}
+
+/** omp's choices for `plugin` from the files' texts. */
+export function ompChoicesFrom(plugin: string, files: OmpPluginFiles): OmpChoices {
+	return { person: choicesIn(files.user, plugin), project: choicesIn(files.project, plugin) };
 }
 
 function readOrUndefined(path: string): string | undefined {
@@ -47,7 +54,7 @@ function readOrUndefined(path: string): string | undefined {
 }
 
 /** omp's choices for `plugin`'s settings in a session working in `cwd`. */
-export function ompChoices(plugin: string, cwd: string): Record<string, string | undefined> {
+export function ompChoices(plugin: string, cwd: string): OmpChoices {
 	return ompChoicesFrom(plugin, {
 		project: readOrUndefined(getProjectPluginOverridesPath(cwd)),
 		user: readOrUndefined(getPluginsLockfile()),

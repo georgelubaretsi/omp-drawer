@@ -77,16 +77,17 @@ export const scenario: Scenario = {
 	operations,
 	traceMessages,
 	shells: {
-		omp: (pi, at) =>
+		omp: (pi, at) => {
 			Reflect.apply(kagiInOmp, undefined, [
 				pi,
-				{ io: bunIo(), home: homedir(), plugin: pluginOf(at), windows: false, ompChoice: () => undefined },
-			]),
+				{ io: bunIo(), home: homedir(), plugin: pluginOf(at), windows: false, ompChoice: () => ({}) },
+			]);
+		},
 		claude: register,
 		codex: at => {
 			const place = { home: homedir(), project: at.project, plugin: pluginOf(at) };
 			const marks = failureMarks(join(homedir(), ".cache", "kagi-failed"));
-			return kagiParts({}, { io: bunIo(), place, windows: false, marks });
+			return kagiParts({ io: bunIo(), place, windows: false, marks });
 		},
 	},
 };

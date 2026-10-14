@@ -4,7 +4,8 @@
 // agent searches with Kagi and never has to fail a call to learn it; with "offered" never.
 import type { Io, Place } from "../kit/core/io";
 import type { ModelText } from "../kit/core/model";
-import { readSettings } from "../kit/core/settings";
+import type { AgentChoice } from "../kit/core/settings";
+import { agentChoices, readSettings } from "../kit/core/settings";
 import { model } from "./model.gen";
 import { declared } from "./settings.gen";
 
@@ -20,12 +21,12 @@ function isSearch(value: unknown): value is Search {
 }
 
 /**
- * The setting where the agent works at `place`, given the agent's own `choice` (its settings screen;
- * "shared", none or a value that isn't a choice follow the settings files).
+ * The setting where the agent works at `place`, given the agent's own choices when it has a
+ * settings screen ("shared", none or a value that isn't a choice follow the settings files). A
+ * project's choice ranks with the project's file: a repo can't override the person.
  */
-export async function readSearch(io: Io, place: Place, choice: unknown): Promise<Search> {
-	const agent = typeof choice === "string" ? { search: choice } : {};
-	const { values } = await readSettings(io, place, { plugin: PLUGIN, declared, agent });
+export async function readSearch(io: Io, place: Place, choice?: AgentChoice): Promise<Search> {
+	const { values } = await readSettings(io, place, { plugin: PLUGIN, declared, ...agentChoices("search", choice) });
 	const value = values.search?.value;
 	return isSearch(value) ? value : "first";
 }

@@ -11,4 +11,7 @@ text.set("lua", model.text("lua"));
 text.set("lua.code", model.text("lua.code"));
 text.set("lua.timeout_s", model.text("lua.timeout_s"));
 
-export const operations = parseOperations(SOURCE, text);
+export const operations = parseOperations(SOURCE, text, {
+	crashed: cause => model.text("error-crashed", { cause }),
+	badArguments: problem => model.text("error-arguments", { problem }),
+});

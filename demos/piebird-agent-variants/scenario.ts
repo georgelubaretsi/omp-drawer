@@ -15,7 +15,8 @@ export default {
 		await d.wait(2000);
 		await d.startOmp();
 		d.caption("Name the agent and the model", "in plain words");
-		await d.prompt("Have the reviewer agent check src/cart.ts, running on Claude Haiku.", {
+		// Claude through the demo machine's gateway counts as a key; on this Mac it is a subscription.
+		await d.prompt("Have the reviewer agent check src/cart.ts, running on Claude Haiku, my Claude subscription.", {
 			fast: 4,
 			timeoutMs: 300_000,
 		});

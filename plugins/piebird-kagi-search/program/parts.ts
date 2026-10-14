@@ -3,7 +3,7 @@
 // PreToolUse hook on web.run, which keeps web.run from searching while the "search" setting says so
 // (core/search.ts). A call that finds Kagi down marks its session (marks.ts) for the hook.
 import type { Io, Place } from "../kit/core/io";
-import type { AgentChoices, Parts } from "../kit/program/cli";
+import type { Parts } from "../kit/program/cli";
 import type { HookAnswer, HookInput } from "../kit/program/hook";
 import type { Search } from "../core/search";
 import type { Marks } from "./marks";
@@ -42,16 +42,16 @@ function sessionOf(meta: Readonly<Record<string, unknown>>): string | undefined 
 	return typeof meta.sessionId === "string" ? meta.sessionId : undefined;
 }
 
-async function webRun(input: HookInput, choice: string | undefined, at: Surroundings): Promise<HookAnswer> {
+async function webRun(input: HookInput, at: Surroundings): Promise<HookAnswer> {
 	if (input.hookEventName !== "PreToolUse" || input.toolName !== WEB_RUN || !searches(input.toolInput)) return allow();
 	const place = { ...at.place, project: input.cwd };
-	const search = await readSearch(at.io, place, choice).catch((): Search => "offered");
+	const search = await readSearch(at.io, place).catch((): Search => "offered");
 	if (!builtInOff(search, await at.marks.has(input.sessionId))) return allow();
 	return deny(model.text("refused-web-run", { search }));
 }
 
-export async function kagiParts(agent: AgentChoices, at: Surroundings): Promise<Parts> {
-	const search = await readSearch(at.io, at.place, agent.search).catch((): Search => "offered");
+export async function kagiParts(at: Surroundings): Promise<Parts> {
+	const search = await readSearch(at.io, at.place).catch((): Search => "offered");
 	return {
 		name: manifest.name,
 		version: manifest.version,
@@ -61,6 +61,6 @@ export async function kagiParts(agent: AgentChoices, at: Surroundings): Promise<
 		async afterCall({ outcome, meta }) {
 			if (kagiDown(outcome)) await at.marks.set(sessionOf(meta));
 		},
-		hook: input => webRun(input, agent.search, at),
+		hook: input => webRun(input, at),
 	};
 }

@@ -64,7 +64,6 @@ export const scenario: Scenario = {
 	plugin: "piebird-threads",
 	setup,
 	steps: STEPS,
-	operations: { byId: new Map(), tools: [] },
 	traceMessages,
 	shells: { omp: threads, claude: register },
 };

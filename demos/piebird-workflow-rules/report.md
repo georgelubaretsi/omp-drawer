@@ -6,33 +6,30 @@ A failed call, or calls the task didn't need, mean the agent stumbled on somethi
 
 | Agent | Prompt | Seconds | Tool calls | Failed |
 | --- | --- | --- | --- | --- |
-| omp | A gift card bigger than the cart makes the total negative. Fix it. | 18 | 7 | 0 |
-| Claude Code | A gift card bigger than the cart makes the total negative. Fix it. | 14 | 7 | 0 |
-| Codex | A gift card bigger than the cart makes the total negative. Fix it. | 81 | 4 | 0 |
+| omp | A gift card bigger than the cart makes the total negative. Fix it. | 14 | 4 | 0 |
+| Claude Code | A gift card bigger than the cart makes the total negative. Fix it. | 17 | 7 | 0 |
+| Codex | A gift card bigger than the cart makes the total negative. Fix it. | 29 | 4 | 0 |
 
 ## omp: A gift card bigger than the cart makes the total negative. Fix it.
 
-1. `find`: Locating cart total calculation
+1. `grep`: Locating gift card logic
 2. `read`: Reading cart total logic
-3. `grep`: Finding callers and tests of total
-4. `edit`: Clamping total at zero
-5. `read`: Checking changelog format
-6. `edit`: Adding regression test and changelog entry
-7. `bash`: Running cart tests
+3. `edit`: Clamping total at zero
+4. `bash`: Running cart tests
 
 ## Claude Code: A gift card bigger than the cart makes the total negative. Fix it.
 
-1. `Bash`: Check repo state and search for gift card code
-2. `Bash`: Read cart code, tests, and callers
-3. `Bash`: Read changelog, README, and run existing tests
+1. `Bash`: Show repo status, recent commits, and file list
+2. `Bash`: Search repo for gift card references
+3. `Bash`: Read cart code, tests, changelog, and related references
 4. `Edit`: 
 5. `Edit`: 
 6. `Edit`: 
-7. `Bash`: Run the test suite
+7. `Bash`: Run the test suite with bun and show diff stats
 
 ## Codex: A gift card bigger than the cart makes the total negative. Fix it.
 
 1. `exec`: text(await tools.exec_command({cmd:"pwd; rg --files -g 'AGENTS.md' -g '*gift*' -
-2. `exec`: text(await tools.exec_command({cmd:"rg --files --hidden -g '!node_modules' -g '!
-3. `exec`: text(await tools.exec_command({cmd:"cat src/server.ts CHANGELOG.md; for f in /AG
-4. `exec`: text(await tools.apply_patch("*** Begin Patch\n*** Update File: /private/tmp/omp
+2. `exec`: text(await tools.exec_command({cmd:"rg --files -g 'AGENTS.md' -g '!node_modules'
+3. `exec`: text(await tools.exec_command({cmd:"ls -la; for p in /AGENTS.md /private/AGENTS.
+4. `exec`: text(await tools.exec_command({cmd:"cat README.md CHANGELOG.md; git diff --check

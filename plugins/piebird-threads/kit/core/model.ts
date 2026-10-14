@@ -5,8 +5,14 @@ import { FluentBundle, FluentNumber, FluentResource } from "./vendor/fluent/inde
 
 const MINT: unique symbol = Symbol("model text");
 
+/**
+ * Text for the model. Its brand keeps any other object with a `text` from passing as one, while
+ * every plugin's copy of the kit, and the tools that read them all, agree on the type; the build
+ * refuses the brand written anywhere but here (tools/build/purity.ts).
+ */
 export class ModelText {
 	readonly text: string;
+	readonly brand = "piebird-catalog";
 	constructor(mint: typeof MINT, text: string) {
 		if (mint !== MINT) throw new Error("ModelText comes from a Catalog");
 		this.text = text;

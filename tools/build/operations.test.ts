@@ -28,6 +28,8 @@ const SEARCH_TEXT = `search = Searches the web.
     .query = What to search for.
     .limit = How many results.
 error-signed-out = The person isn't signed in.
+error-crashed = The search broke: { $cause }
+error-arguments = Those arguments don't fit: { $problem }
 `;
 
 async function problemsFor(operations: unknown, ftl?: string): Promise<string[]> {
@@ -106,6 +108,8 @@ describe("model.ftl for operations", () => {
 				"search is missing, or has no value: what the tool demo_search does",
 				"search.limit is missing: what the argument limit is for",
 				"search.sort names no argument of search",
+				"error-crashed is missing: what a tool says when its code fails, with { $cause }",
+				"error-arguments is missing: what a tool says when its arguments don't fit its schema, with { $problem }",
 			].map(p => `${MODEL}: ${p}`),
 		);
 	});
@@ -138,7 +142,7 @@ describe("operations.gen.ts", () => {
 		expect(out).toContain(`wrote: plugins/demo/${OPERATIONS_GEN}`);
 		expect(out).toContain(`wrote: plugins/demo/${MODEL_GEN}`);
 		const script = `import { operations } from ${JSON.stringify(join(root, "plugins/demo", OPERATIONS_GEN))};
-console.log(JSON.stringify({ ids: [...operations.byId.keys()], tools: operations.tools.map(t => [t.tool.name, t.tool.description.text, t.tool.inputSchema]) }));`;
+console.log(JSON.stringify({ ids: [...operations.byId.keys()], tools: operations.tools.map(t => [t.tool.name, t.tool.description.text, t.tool.inputSchema]), crashed: operations.crashed("no network").text, badArguments: operations.badArguments("no query").text }));`;
 		const run = Bun.spawnSync([process.execPath, "-e", script]);
 		expect(run.stderr.toString()).toBe("");
 		expect(JSON.parse(run.stdout.toString())).toEqual({
@@ -156,6 +160,8 @@ console.log(JSON.stringify({ ids: [...operations.byId.keys()], tools: operations
 					},
 				],
 			],
+			crashed: "The search broke: no network",
+			badArguments: "Those arguments don't fit: no query",
 		});
 	});
 

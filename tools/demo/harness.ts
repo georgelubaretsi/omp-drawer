@@ -6,12 +6,27 @@
 //   Codex loads plugins only by installing them, so it gets a CODEX_HOME in the sandbox whose
 //   auth.json links to yours: nothing is copied. It installs them as the desktop installer gives
 //   them to it. Should Codex replace the link with a refreshed login, that file goes back to yours
-//   before the sandbox is removed.
-import { copyFile, cp, lstat, mkdir, readdir, realpath, rm, stat, symlink, writeFile } from "node:fs/promises";
+//   before the sandbox is removed. Codex passes a plugin's program none of the variables it was
+//   started with, so a secret's variable the demo sets (credentials.ts) goes into the server's
+//   `env` in the sandbox's copy.
+import {
+	copyFile,
+	cp,
+	lstat,
+	mkdir,
+	readdir,
+	readFile,
+	realpath,
+	rm,
+	stat,
+	symlink,
+	writeFile,
+} from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import catalog from "../../catalog.json" with { type: "json" };
 import { codexMcpJson } from "../../installer/steps/codex";
+import { parseDeclared } from "../../kit/core/declared";
 import type { Agent } from "./agents";
 import type { Journals } from "./journal";
 
@@ -73,23 +88,36 @@ export async function agentShell(
 	return { rc, env };
 }
 
-async function run(argv: string[], env: Record<string, string | undefined>): Promise<void> {
+type Env = Record<string, string | undefined>;
+
+async function run(argv: string[], env: Env): Promise<void> {
 	const proc = Bun.spawn(argv, { env, stdout: "ignore", stderr: "pipe", stdin: "ignore" });
 	const [err, code] = await Promise.all([new Response(proc.stderr).text(), proc.exited]);
 	if (code !== 0) throw new Error(`${argv.join(" ")} exited ${code}: ${err.trim()}`);
+}
+
+/** The variables the plugin in `dir` reads its secrets from (core/settings.json) that `env` sets. */
+async function secretVariables(dir: string, env: Env): Promise<Record<string, string>> {
+	const source = await readFile(join(dir, "core", "settings.json"), "utf8").catch(() => undefined);
+	if (source === undefined) return {};
+	const set = Object.values(parseDeclared(source).secrets).flatMap((s): [string, string][] => {
+		const value = s.env === undefined ? undefined : env[s.env];
+		return s.env !== undefined && value ? [[s.env, value]] : [];
+	});
+	return Object.fromEntries(set);
 }
 
 /**
  * The plugins as the desktop installer gives them to Codex (installer/steps/codex.ts): a copy of
  * each with an mcp.json for its program, in a marketplace of their own.
  */
-async function codexMarket(p: Place, plugins: string[]): Promise<string> {
+async function codexMarket(p: Place, plugins: string[], env: Env): Promise<string> {
 	const market = join(p.root, "codex-market");
 	for (const name of plugins) {
 		const to = join(market, "plugins", name);
 		await cp(join(p.market, "plugins", name), to, { recursive: true, filter: src => !src.includes("/node_modules") });
 		if (await Bun.file(join(to, "native", name)).exists()) {
-			const mcp = codexMcpJson(name, process.platform === "win32");
+			const mcp = codexMcpJson(name, process.platform === "win32", await secretVariables(to, env));
 			await writeFile(join(to, mcp.path), mcp.data);
 		}
 	}
@@ -108,7 +136,7 @@ async function codexMarket(p: Place, plugins: string[]): Promise<string> {
 }
 
 /** Codex's home in the sandbox: your login linked, the project trusted, the plugins installed. */
-export async function setUpCodex(p: Place, plugins: string[], env: Record<string, string | undefined>): Promise<void> {
+export async function setUpCodex(p: Place, plugins: string[], env: Env): Promise<void> {
 	const home = codexHome(p);
 	await mkdir(home, { recursive: true });
 	await symlink(CODEX_AUTH, join(home, "auth.json"));
@@ -123,7 +151,7 @@ export async function setUpCodex(p: Place, plugins: string[], env: Record<string
 	];
 	await writeFile(join(home, "config.toml"), `${config.join("\n")}\n`);
 	const codexEnv = { ...env, CODEX_HOME: home };
-	await run(["codex", "plugin", "marketplace", "add", await codexMarket(p, plugins)], codexEnv);
+	await run(["codex", "plugin", "marketplace", "add", await codexMarket(p, plugins, env)], codexEnv);
 	for (const name of plugins) await run(["codex", "plugin", "add", `${name}@${catalog.name}`], codexEnv);
 }
 

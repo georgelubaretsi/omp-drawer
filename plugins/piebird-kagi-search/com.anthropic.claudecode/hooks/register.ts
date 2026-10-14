@@ -76,10 +76,13 @@ async function vaultOf($: Api): Promise<string> {
 	return vaultPath($.plugin.root, VAULT, (await $.env.get("OS")) === "Windows_NT");
 }
 
-/** The setting, given Claude Code's own choice; "offered" when it can't be read, so nothing is held back. */
+/**
+ * The setting, given Claude Code's own choice (read from the person's settings only, never a
+ * project's); "offered" when it can't be read, so nothing is held back.
+ */
 function setting($: Api, choice: unknown): Promise<Search> {
 	search ??= placeOf($)
-		.then(place => readSearch(ioOf($), place, choice))
+		.then(place => readSearch(ioOf($), place, { person: choice }))
 		.catch((): Search => "offered");
 	return search;
 }

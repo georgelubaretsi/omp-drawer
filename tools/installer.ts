@@ -90,8 +90,11 @@ async function windows(program: string, out: string, release: boolean): Promise<
 	return exe;
 }
 
-/** The plugins the installer carries for `platform`; throws naming the programs not built for it. */
-async function payloadFor(platform: Platform) {
+/**
+ * The plugins the installer carries for `platform`, as its marketplace holds them; throws naming
+ * the programs not built for it. The demo machine installs from this too (vm/run.ts).
+ */
+export async function payloadFor(platform: Platform) {
 	const entries = [...(await catalogEntries()).values()];
 	const files = payloadFiles(
 		ROOT,

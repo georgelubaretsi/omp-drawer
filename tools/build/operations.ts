@@ -76,21 +76,39 @@ function declarationProblems(file: string, operations: Record<string, OperationD
 	return out;
 }
 
+/**
+ * The messages a plugin with tools has for a tool that can't answer as its operation says
+ * (kit/core/operations.ts, ToolWords), each with the variable it takes.
+ */
+const TOOL_WORDS: readonly [string, string, string][] = [
+	["error-crashed", "cause", "what a tool says when its code fails"],
+	["error-arguments", "problem", "what a tool says when its arguments don't fit its schema"],
+];
+
+/** What model.ftl lacks, or has to spare, for the tool of operation `id`. */
+function toolTextProblems(id: string, op: OperationDeclaration, ids: ReadonlySet<string>): string[] {
+	if (!op.tool) return [];
+	const out: string[] = [];
+	if (!ids.has(id)) out.push(`${id} is missing, or has no value: what the tool ${op.tool.name} does`);
+	const args = Object.keys(isObject(op.input.properties) ? op.input.properties : {});
+	for (const a of args) if (!ids.has(`${id}.${a}`)) out.push(`${id}.${a} is missing: what the argument ${a} is for`);
+	for (const attr of [...ids].filter(m => m.startsWith(`${id}.`))) {
+		if (!args.includes(attr.slice(id.length + 1))) out.push(`${attr} names no argument of ${id}`);
+	}
+	return out;
+}
+
 /** What model.ftl lacks, or has to spare, for the tools and errors in `operations`. */
 export function textProblems(operations: Record<string, OperationDeclaration>, ids: ReadonlySet<string>): string[] {
 	const out: string[] = [];
 	for (const [id, op] of Object.entries(operations)) {
 		for (const e of op.errors ?? [])
 			if (!ids.has(`error-${e}`)) out.push(`error-${e} is missing: what the error ${e} means`);
-		if (!op.tool) continue;
-		if (!ids.has(id)) out.push(`${id} is missing, or has no value: what the tool ${op.tool.name} does`);
-		const args = Object.keys(isObject(op.input.properties) ? op.input.properties : {});
-		for (const a of args)
-			if (!ids.has(`${id}.${a}`)) out.push(`${id}.${a} is missing: what the argument ${a} is for`);
-		for (const attr of [...ids].filter(m => m.startsWith(`${id}.`))) {
-			if (!args.includes(attr.slice(id.length + 1))) out.push(`${attr} names no argument of ${id}`);
-		}
+		out.push(...toolTextProblems(id, op, ids));
 	}
+	if (!Object.values(operations).some(op => op.tool)) return out;
+	for (const [id, variable, what] of TOOL_WORDS)
+		if (!ids.has(id)) out.push(`${id} is missing: ${what}, with { $${variable} }`);
 	return out;
 }
 
@@ -141,7 +159,14 @@ export function operationsGen(file: OperationsFile): string {
 		"const text = new Map<string, ModelText>();",
 		...ids.toSorted().map(id => `text.set(${JSON.stringify(id)}, model.text(${JSON.stringify(id)}));`),
 		"",
-		"export const operations = parseOperations(SOURCE, text);",
+		ids.length > 0
+			? [
+					"export const operations = parseOperations(SOURCE, text, {",
+					'\tcrashed: cause => model.text("error-crashed", { cause }),',
+					'\tbadArguments: problem => model.text("error-arguments", { problem }),',
+					"});",
+				].join("\n")
+			: "export const operations = parseOperations(SOURCE, text);",
 		"",
 	].join("\n");
 }

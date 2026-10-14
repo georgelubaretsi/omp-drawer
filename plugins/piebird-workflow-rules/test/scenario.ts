@@ -22,7 +22,6 @@ export const scenario: Scenario = {
 	plugin: "piebird-workflow-rules",
 	setup,
 	steps: STEPS,
-	operations: { byId: new Map(), tools: [] },
 	traceMessages,
 	shells: { claude: register },
 };

@@ -46,12 +46,22 @@ async function setup(guest: Guest): Promise<void> {
 	await guest.shell(
 		"defaults write com.apple.WindowManager StandardHideWidgets -int 1; killall WindowManager; sleep 3; true",
 	);
+	// Dark, as every demo. macOS takes the appearance when the user logs in (System Events, which
+	// switches it live, waits for a permission no one is there to give): write it, then end the
+	// login session; the image logs its user back in by itself.
+	await guest.shell("defaults write -g AppleInterfaceStyle Dark");
+	await guest.sudo("pkill -x loginwindow; true");
+	await guest.shell(
+		"sleep 5; for i in $(seq 1 90); do pgrep -x Dock >/dev/null && pgrep -x Finder >/dev/null && break; sleep 1; done; sleep 8",
+	);
 	await guest.shell("pkill -x Terminal; open ~/Downloads; sleep 3");
 }
 
 const BLUE: [number, number, number] = [0, 113, 227];
-const PALE_BLUE: [number, number, number] = [128, 184, 241];
-const BLACK: [number, number, number] = [0, 0, 0];
+/** The install button while it works: #0071e3 at half opacity over the dark page (#1d1d1f). */
+const PALE_BLUE: [number, number, number] = [15, 71, 129];
+/** Claude's Install button in its extension window, white in dark mode. */
+const WHITE: [number, number, number] = [255, 255, 255];
 
 /**
  * Claude runs python3 at its start, and on a Mac without Apple's developer tools that asks to
@@ -89,7 +99,7 @@ async function install(d: VmDemo): Promise<void> {
 async function claudeChat(d: VmDemo): Promise<void> {
 	d.caption("Claude chat adds a plugin in its own window");
 	await d.click(296, 535);
-	await d.waitForColor(258, 282, BLACK);
+	await d.waitForColor(258, 282, WHITE);
 	await d.shot("3-claude");
 	await d.click(300, 282);
 	await d.wait(1500);
@@ -110,7 +120,8 @@ async function settings(d: VmDemo): Promise<void> {
 	await d.click(262, 600);
 	await d.waitForColor(165, 670, BLUE);
 	await d.shot("7-settings");
-	await d.click(171, 401);
+	// "Kagi only", the first choice below "Automatic".
+	await d.click(171, 460);
 	await d.wait(1000);
 	await d.click(202, 670);
 	await d.wait(2500);

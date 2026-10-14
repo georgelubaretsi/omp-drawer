@@ -8,6 +8,7 @@ import { model } from "./model.gen";
 /** Errors after which the agent's own web search is back with the "first" setting (core/search.ts). */
 const KAGI_DOWN: ReadonlySet<string> = new Set([
 	"sign-in-needed",
+	"env-session-refused",
 	"secret-store",
 	"http-status",
 	"cannot-reach",

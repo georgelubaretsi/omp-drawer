@@ -25,9 +25,6 @@
     "plugins/piebird-agent-variants": {
       "name": "piebird-agent-variants",
       "version": "0.1.0",
-      "dependencies": {
-        "yaml": "^2.8.1",
-      },
       "devDependencies": {
         "@oh-my-pi/pi-coding-agent": "18.8.9",
         "@oh-my-pi/pi-utils": "18.8.9",

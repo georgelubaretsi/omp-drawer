@@ -23,6 +23,9 @@ answer-truncated =
 
 ## What each error means.
 
+# The tool's own code failing (a bug, an unexpected error), and arguments its schema doesn't take.
+error-crashed = tern_lua failed in the plugin: { $cause }
+error-arguments = The arguments don't fit tern_lua: { $problem }
 error-lua-error = Lua error: { $error }
 error-cancelled = Cancelled before Tern ran the code.
 error-not-loaded = The piebird-tern-bridge Tern plugin is not loaded: its data folder { $dir } does not exist. omp installs it when it starts in a Tern pane, so if omp just started, try again in a moment. Otherwise install it with: tern plugin install "{ $pluginDir }" --force. If Tern runs with TERN_CONFIG_DIR, give omp the same value.

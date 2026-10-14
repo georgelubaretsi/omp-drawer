@@ -30,19 +30,30 @@ function chosen(file: unknown, plugin: string, key: string, d: Declaration): str
 	return d.type === "choice" && !d.choices.some(c => c.value === value) ? undefined : value;
 }
 
-function settingHtml(plugin: string, key: string, d: Declaration, value: string): string {
+/** What "Automatic" (no choice of the person's) means: the project's choice, else the default. */
+function automaticMeans(d: Declaration): string {
+	const fallback = d.type === "choice" ? d.choices.find(c => c.value === d.default)?.label : d.default;
+	return fallback ? `Each project's own choice, else the default: ${fallback}.` : "Each project's own choice.";
+}
+
+/**
+ * One setting's controls. `value` is the person's own, undefined when they set none: "Automatic"
+ * leaves it to the project's settings and the default, and any value picked is kept, the
+ * default's too, so it holds over a project's choice.
+ */
+function settingHtml(plugin: string, key: string, d: Declaration, value: string | undefined): string {
 	const name = escape(`${plugin}/${key}`);
 	const head = `<h3>${escape(d.title)}</h3><p>${escape(d.about)}</p>`;
 	if (d.type !== "choice") {
-		const hint = d.default ? ` placeholder="${escape(d.default)}"` : "";
-		return `<div class="setting">${head}<input type="text" name="${name}" value="${escape(value)}"${hint}></div>`;
+		const hint = ` placeholder="${escape(d.default ? `Automatic: ${d.default}` : "Automatic")}"`;
+		return `<div class="setting">${head}<input type="text" name="${name}" value="${escape(value ?? "")}"${hint}></div>`;
 	}
-	const options = d.choices.map(c => {
-		const checked = c.value === value ? " checked" : "";
-		const mark = c.value === d.default ? " <em>(default)</em>" : "";
-		return `<label class="choice"><input type="radio" name="${name}" value="${escape(c.value)}"${checked}><span><strong>${escape(c.label)}</strong>${mark}<br>${escape(c.means)}</span></label>`;
-	});
-	return `<div class="setting">${head}${options.join("")}</div>`;
+	const radio = (v: string, label: string, means: string, mark = "") =>
+		`<label class="choice"><input type="radio" name="${name}" value="${escape(v)}"${(value ?? "") === v ? " checked" : ""}><span><strong>${escape(label)}</strong>${mark}<br>${escape(means)}</span></label>`;
+	const options = d.choices.map(c =>
+		radio(c.value, c.label, c.means, c.value === d.default ? " <em>(default)</em>" : ""),
+	);
+	return `<div class="setting">${head}${radio("", "Automatic", automaticMeans(d))}${options.join("")}</div>`;
 }
 
 const STYLE = `:root{--bg:#fff;--fg:#1d1d1f;--line:#d2d2d7}
@@ -62,24 +73,25 @@ const answer = await res.json();
 document.getElementById("status").textContent = res.ok ? "Saved. New sessions use it." : answer.problems.join(" ");
 });`;
 
-/** The page: each plugin's settings, set to the person's own value or else the default. */
+/** The page: each plugin's settings, set to the person's own value, or "Automatic" without one. */
 export function settingsHtml(plugins: readonly PagePlugin[], file: unknown): string {
 	const sections = plugins
 		.filter(p => Object.keys(p.declared.settings).length > 0)
 		.map(p => {
 			const settings = Object.entries(p.declared.settings).map(([key, d]) =>
-				settingHtml(p.name, key, d, chosen(file, p.name, key, d) ?? d.default),
+				settingHtml(p.name, key, d, chosen(file, p.name, key, d)),
 			);
 			return `<h2>${escape(p.title ?? p.name)}</h2>${settings.join("")}`;
 		});
 	const body = sections.length > 0 ? sections.join("") : "<p>These plugins have no settings.</p>";
-	return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>piebird settings</title><style>${STYLE}</style></head><body><h1>piebird settings</h1><p>Your choices for every agent on this computer. An agent's own settings screen, where it has one, can still choose otherwise.</p><form>${body}<div class="bar"><button type="submit">Save</button><span id="status" role="status"></span></div></form><script>${SCRIPT}</script></body></html>`;
+	return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>piebird settings</title><style>${STYLE}</style></head><body><h1>piebird settings</h1><p>Your choices for every agent on this computer, over any project's. An agent's own settings screen, where it has one, can still choose otherwise.</p><form>${body}<div class="bar"><button type="submit">Save</button><span id="status" role="status"></span></div></form><script>${SCRIPT}</script></body></html>`;
 }
 
 /**
  * The person's file with `choices` for `plugin`: other plugins' sections and keys the page doesn't
- * know are kept; a setting set to its default is removed, so a later default applies. A value the
- * declaration doesn't allow is a problem, and nothing changes.
+ * know are kept; an empty value ("Automatic") removes the setting, so the project's choice or the
+ * default applies, and any other is kept, the default's too. A value the declaration doesn't allow
+ * is a problem, and nothing changes.
  */
 export function withChoices(
 	file: unknown,
@@ -93,9 +105,9 @@ export function withChoices(
 	for (const [key, value] of Object.entries(choices)) {
 		const d = plugin.declared.settings[key];
 		if (!d || typeof value !== "string") problems.push(`${plugin.name} has no setting ${key}.`);
+		else if (value === "") delete section[key];
 		else if (d.type === "choice" && !d.choices.some(c => c.value === value))
 			problems.push(`${d.title} can't be "${value}".`);
-		else if (value === d.default) delete section[key];
 		else section[key] = value;
 	}
 	if (Object.keys(section).length > 0) next[plugin.name] = section;

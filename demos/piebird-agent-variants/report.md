@@ -6,12 +6,13 @@ A failed call, or calls the task didn't need, mean the agent stumbled on somethi
 
 | Agent | Prompt | Seconds | Tool calls | Failed |
 | --- | --- | --- | --- | --- |
-| omp | Have the reviewer agent check src/cart.ts, running on Claude Haiku. | 27 | 5 | 0 |
+| omp | Have the reviewer agent check src/cart.ts, running on Claude Haiku, my Claude subscription. | 34 | 6 | 0 |
 
-## omp: Have the reviewer agent check src/cart.ts, running on Claude Haiku.
+## omp: Have the reviewer agent check src/cart.ts, running on Claude Haiku, my Claude subscription.
 
-1. `agent_variant_setup`: Setting up Haiku reviewer variant
-2. `bash`: Checking repo instructions and status for .omp writes
-3. `agent_variant_setup`: Setting up Haiku reviewer variant
-4. `task`: Reviewing src/cart.ts on Haiku
-5. `wait`: Waiting for Haiku cart review
+1. `agent_variant_setup`: Configuring Haiku reviewer variant on Claude subscription
+2. `bash`: Checking repo instructions and .omp status
+3. `agent_variant_setup`: Configuring Haiku reviewer variant on Claude subscription
+4. `task`: Running Haiku reviewer on src/cart.ts
+5. `wait`: Waiting for CartReview results
+6. `read`: Reading cart.ts to verify reviewer findings

@@ -27,13 +27,34 @@ export interface Problem {
 /** An agent's own choice that follows the person's shared one. */
 export const SHARED = "shared";
 
+/** Choices by key, as an agent's own settings hold them. */
+export type Choices = Readonly<Record<string, string | undefined>>;
+
 export interface Sources {
 	/** The project's file, parsed; undefined when there is none. */
 	readonly project?: unknown;
+	/**
+	 * The agent's own choices kept in the project (omp's .omp/plugin-overrides.json): a repo can
+	 * hold them, so they rank with the project's file, over it, and below the person.
+	 */
+	readonly agentProject?: Choices;
 	/** The person's file, parsed; undefined when there is none. */
 	readonly user?: unknown;
-	/** The agent's own screen, by key; SHARED, empty or undefined follows the files. */
-	readonly agent?: Readonly<Record<string, string | undefined>>;
+	/** The person's choices in the agent's own screen, by key; SHARED, empty or undefined follows the files. */
+	readonly agent?: Choices;
+}
+
+/** `own`, an agent's choice for setting `d`, when it is one; else undefined, its problem in `problems`. */
+function agentValue(
+	d: Declaration,
+	own: string | undefined,
+	at: { key: string; level: Problem["level"]; problems: Problem[] },
+) {
+	if (own === undefined || own === SHARED || own === "") return undefined;
+	const issue = issueWith(d, own);
+	if (issue === undefined) return own;
+	at.problems.push({ level: at.level, key: at.key, issue });
+	return undefined;
 }
 
 function record(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -81,14 +102,12 @@ export function resolveSettings(
 		let resolved: Resolved = { value: d.default, from: "default" };
 		const fromProject = project.values.get(key);
 		if (fromProject !== undefined) resolved = { value: fromProject, from: "project" };
+		const fromAgentProject = agentValue(d, sources.agentProject?.[key], { key, level: "project", problems });
+		if (fromAgentProject !== undefined) resolved = { value: fromAgentProject, from: "project" };
 		const fromUser = user.values.get(key);
 		if (fromUser !== undefined) resolved = { value: fromUser, from: "user" };
-		const own = sources.agent?.[key];
-		if (own !== undefined && own !== SHARED && own !== "") {
-			const issue = issueWith(d, own);
-			if (issue === undefined) resolved = { value: own, from: "agent" };
-			else problems.push({ level: "agent", key, issue });
-		}
+		const own = agentValue(d, sources.agent?.[key], { key, level: "agent", problems });
+		if (own !== undefined) resolved = { value: own, from: "agent" };
 		values[key] = resolved;
 	}
 	return { values, problems };
@@ -109,11 +128,24 @@ async function readFile(io: Io, path: string, level: "project" | "user", problem
 	}
 }
 
-/** A plugin's declarations, and its agent's own screen when the agent has one. */
+/** A plugin's declarations, and its agent's own choices when the agent has a screen for them. */
 export interface PluginSettings {
 	readonly plugin: string;
 	readonly declared: Declared;
-	readonly agent?: Sources["agent"];
+	readonly agent?: Choices;
+	readonly agentProject?: Choices;
+}
+
+/** One setting's choices in an agent's own settings: the person's, and one the agent keeps in the project. */
+export interface AgentChoice {
+	readonly person?: unknown;
+	readonly project?: unknown;
+}
+
+/** `choice` for the setting `key`, as readSettings takes an agent's choices. */
+export function agentChoices(key: string, choice: AgentChoice = {}): Pick<PluginSettings, "agent" | "agentProject"> {
+	const one = (value: unknown): Choices => (typeof value === "string" ? { [key]: value } : {});
+	return { agent: one(choice.person), agentProject: one(choice.project) };
 }
 
 /**
@@ -123,13 +155,13 @@ export interface PluginSettings {
 export async function readSettings(
 	io: Io,
 	place: Place,
-	{ plugin, declared, agent }: PluginSettings,
+	{ plugin, declared, agent, agentProject }: PluginSettings,
 ): Promise<{ values: Readonly<Record<string, Resolved>>; problems: readonly Problem[] }> {
 	const problems: Problem[] = [];
 	const userPath = `${place.home}/${SETTINGS_PATH}`;
 	const projectPath = `${place.project}/${SETTINGS_PATH}`;
 	const user = await readFile(io, userPath, "user", problems);
 	const project = projectPath === userPath ? undefined : await readFile(io, projectPath, "project", problems);
-	const resolved = resolveSettings(plugin, declared, { project, user, agent });
+	const resolved = resolveSettings(plugin, declared, { project, agentProject, user, agent });
 	return { values: resolved.values, problems: [...problems, ...resolved.problems] };
 }

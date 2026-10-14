@@ -38,8 +38,9 @@ export default function threads(pi: ExtensionAPI): void {
 		if (ctx.agent.kind !== "main") return undefined;
 		try {
 			const place = ompPlace(ctx, plugin);
+			const omp = ompChoices(PLUGIN, ctx.cwd);
 			const at = {
-				choice: ompChoices(PLUGIN, ctx.cwd).folder,
+				choice: { person: omp.person.folder, project: omp.project.folder },
 				last: lastSent(ctx.sessionManager.getBranch()),
 				now: Date.now() / 1000,
 			};

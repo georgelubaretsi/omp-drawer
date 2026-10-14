@@ -134,7 +134,10 @@ export class VmDemo {
 		const end = performance.now() + timeoutMs;
 		this.speed(4);
 		while (!near()) {
-			if (performance.now() > end) throw new Error(`(${x}, ${y}) never showed rgb(${rgb.join(", ")})`);
+			if (performance.now() > end) {
+				const seen = this.#vnc.pixel(x * SCALE, y * SCALE).join(", ");
+				throw new Error(`(${x}, ${y}) never showed rgb(${rgb.join(", ")}); it shows rgb(${seen})`);
+			}
 			await Promise.race([this.#vnc.nextUpdate(), Bun.sleep(1000)]);
 		}
 		this.speed(1);

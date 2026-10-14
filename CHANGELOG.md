@@ -20,16 +20,32 @@ change in a new month moves them into a section for the month they were last cha
   plugin command (or its files, as that command writes them), Claude chat with a .mcpb per plugin
   with a program, opened with Claude. The page then offers restarting ChatGPT, signing in and the
   settings page. `bun tools/installer.ts` builds it; the tag `installer/v<version>` releases it.
-- Desktop demos in a throwaway macOS virtual machine (`tools/demo/vm/`, `just demo-vm <demo>`,
-  docs/demos.md): tart clones a base image, the scenario installs the apps there, and one VNC
-  connection watches and drives the screen into the same video format as the plugins' demos.
-  `demos/installer-macos/` records the installer: open it, install, add a plugin to Claude chat,
-  choose a setting.
-- The demos of piebird-sessions, piebird-threads and piebird-workflow-rules show each agent the
-  plugin works in, a tab each (omp, Claude Code, Codex); every demo but piebird-kagi-search's
-  (it needs a Kagi session) was recorded again on the new plugins. Codex in a demo gets the
-  plugins as the desktop installer gives them; Claude Code may call the plugins' tools without
-  asking; its trust question is answered from what it shows.
+- Desktop demos in a throwaway macOS virtual machine (`tools/demo/vm/`, `just demo-desktop
+  <demo>`, docs/demos.md): tart clones a base image, the scenario installs the apps there, and
+  one VNC connection watches and drives the screen into the same video format as the plugins'
+  demos. `demos/installer-macos/` records the installer in dark mode (the setting written, then
+  the login session restarted): open it, install, add a plugin to Claude chat, choose a setting.
+  With `DEMO_SHOTS` set, a failed run saves the screen it ended on.
+- omp and Tern demos record in the demo machine (`tools/demo/vm/run.ts`, docs/demos.md,
+  "Recording in a virtual machine"): a throwaway clone of a macOS image Packer builds
+  (`machine.pkr.hcl`, dark, with Tern, Nix, omp and the flake's `demo-machine` tools), where the
+  recorder sets omp and Tern up as a person does: the desktop installer's marketplace added and
+  the plugins installed from it, Kagi signed in with the vault's own sign-in. omp's models come
+  from this Mac's `omp auth-gateway` through the SSH connection, so no credential goes in; Tern's
+  sign-in sheet is hidden, nothing signed in. Demos with Claude Code and Codex still record on
+  this Mac (`tools/demo/place-host.ts`).
+- The demos of piebird-sessions, piebird-threads, piebird-workflow-rules and piebird-kagi-search
+  show each agent the plugin works in, a tab each (omp, Claude Code, Codex); every demo was
+  recorded again on the new plugins. Codex in a demo gets the plugins as the desktop installer
+  gives them; Claude Code may call the plugins' tools without asking; its trust question is
+  answered from what it shows. Tern draws its window itself, so this Mac can be locked meanwhile.
+- A demo recorded on this Mac gets Kagi's session (`KAGI_SESSION_TOKEN`, or the kagi CLI's) as
+  `KAGI_SESSION_TOKEN` for its agents, and Codex's copy of the plugin sets it in its `mcp.json`,
+  since Codex passes a plugin's program none of its own variables: nothing goes into this Mac's
+  Keychain (`tools/demo/credentials.ts`).
+- A demo recorded on this Mac whose window shows the login name (an agent listing files prints
+  their owner) gets no video, and the recorder exits 1: it reads the recording twice a second
+  with tesseract, now in the dev shell (`tools/demo/onscreen.ts`).
 - The kit's settings page (`kit/program/settings.ts`): a plugin's program opens the person's
   settings in their browser with `settings` and saves them into `~/.agents/piebird/settings.json`,
   keeping what else the file holds; a local page on 127.0.0.1 behind a random path, as the
@@ -127,9 +143,15 @@ change in a new month moves them into a section for the month they were last cha
   any of them (tests stay in `kit/`). `bun tools/build.ts --check` fails on a copy that differs
   from its source, and the build deletes one a plugin no longer needs. `kit/omp/` holds the
   code that installs a Tern part; `kit/core/model.ts` the strict Fluent catalog (`Catalog`,
-  `ModelText`). Libraries the kit carries are declared in `kit/vendor.json` and copied by the
-  build from their pinned packages into `kit/<part>/vendor/`, with their license
-  (`@fluent/bundle`, Apache-2.0); lint and format leave them alone.
+  `ModelText`). Libraries the kit carries are declared in `kit/vendor.json`, and those one
+  plugin carries in its own `vendor.json`; the build copies them from their pinned packages into
+  `vendor/` folders (`kit/<part>/vendor/`, `plugins/<name>/vendor/`), with their license
+  (`@fluent/bundle`, Apache-2.0; piebird-agent-variants' `yaml`, ISC); lint and format leave them
+  alone. A declaration whose source leaves its package, or whose copy isn't a folder under a
+  `vendor/` folder, is refused. omp installs no packages for a marketplace plugin, so the build
+  refuses an omp extension (a plugin's `src/` and the kit parts it gets, in any script Bun loads:
+  `.ts`, `.tsx`, `.mts`, `.cts` and their JavaScript kin) importing a package by name other than
+  what omp provides: `@oh-my-pi/`, `node:` and Bun's own; type-only imports are fine.
 - A plugin's model text lives in `core/model.ftl`, one Fluent catalog. The build turns it into
   `core/model.gen.ts`: the catalog embedded as text (a Claude Code mod imports only code) and a
   type naming every message and the variables it needs, references followed, so a wrong id or
@@ -236,6 +258,23 @@ change in a new month moves them into a section for the month they were last cha
   their files under `piebird/<program>` in the user's config and cache folders.
 - The public repo is `georgelubaretsi/piebird` (was `omp-drawer`; GitHub forwards the old name):
   the install commands in the READMEs and each plugin's `homepage` and `repository` point there.
+- Every word a tool sends the model comes from its plugin's catalog, its failures too. A tool
+  whose code fails answers with the catalog's `error-crashed`, with the failure's message, and
+  the program's MCP server checks arguments against the tool's schema itself and answers with
+  `error-arguments` instead of the SDK's words; the build refuses a plugin with tools that lacks
+  either. `ModelText` carries a brand only `kit/core/model.ts` writes (the build refuses it
+  anywhere else), so no other object passes for text from a catalog.
+- A repo can't override the person in omp either: omp's project overrides
+  (`.omp/plugin-overrides.json`) rank with the project's settings file, below the person's,
+  though omp puts them over its own global settings. Claude Code reads plugin options from the
+  person's settings only.
+- The settings page has "Automatic" for each setting: the project's choice, else the default.
+  Any value picked is kept, the default's too, so it holds over a project's choice.
+
+### Removed
+
+- The programs' `-agent key=value` option: no host passes a program settings of its own (the
+  `.mcpb` for Claude chat has no `user_config`), so a program reads the settings files alone.
 
 ### Fixed
 

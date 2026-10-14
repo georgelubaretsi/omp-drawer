@@ -111,6 +111,27 @@ func TestASearchWithoutASignInSaysHowAsADeclaredError(t *testing.T) {
 	}
 }
 
+// A session from the environment comes before a kept one, so a sign-in can't replace it: the vault
+// opens no page, and says which variable to fix, to the model and to the person.
+func TestARefusedSessionFromTheEnvironmentNamesTheVariableInsteadOfASignIn(t *testing.T) {
+	v, searches := testVault(t, true)
+	store := secrets.ForProgram(program, []secrets.Secret{{Key: sessionKey, Title: "Kagi session", Env: "KAGI_TEST_SESSION"}})
+	store.File = filepath.Join(t.TempDir(), "secrets.json")
+	v.store = store
+	t.Setenv("KAGI_TEST_SESSION", "refused-session-0123456789")
+	pages := 0
+	v.open = func(string) error { pages++; return nil }
+	reply := call(t, v, "search", `{"query":"example"}`)
+	e, _ := reply["error"].(map[string]any)
+	vars, _ := e["variables"].(map[string]any)
+	if e["id"] != "env-session-refused" || vars["env"] != "KAGI_TEST_SESSION" || pages != 0 || *searches != 0 {
+		t.Fatalf("got %v, %d pages, %d searches", reply, pages, *searches)
+	}
+	if code, out := personAt(v)("", "status"); code != 0 || !strings.Contains(out, "in KAGI_TEST_SESSION, or remove KAGI_TEST_SESSION") {
+		t.Errorf("status: %d %q", code, out)
+	}
+}
+
 func TestInputsAreCheckedHere(t *testing.T) {
 	v, _ := testVault(t, false)
 	for input, id := range map[string]string{
@@ -142,6 +163,15 @@ func TestRawAnswersNeverCarryTheSession(t *testing.T) {
 	}
 	if !strings.Contains(out["body"].(string), "your token is ") {
 		t.Errorf("the body went: %v", out)
+	}
+}
+
+// A token whose encoded forms differ from it: each form a page might carry is taken out.
+func TestRedactTakesOutTheTokenAsWrittenAndEncoded(t *testing.T) {
+	tok := "a/b+c=d e?f&g"
+	page := strings.Join([]string{"x", tok, url.QueryEscape(tok), url.PathEscape(tok), "y"}, "|")
+	if got := redact(page, tok); got != "x||||y" {
+		t.Fatalf("got %q", got)
 	}
 }
 
@@ -177,6 +207,8 @@ func TestRawRequestsAreRefusedBeforeTheyGo(t *testing.T) {
 			"post /x":                             "raw-write-start",
 			"POST /x\nno colon here":              "raw-write-header",
 			"POST /x\nCookie: kagi_session=other": "raw-write-cookie",
+			"POST /x\nHost: evil.example":         "raw-write-cookie",
+			"POST /x\nhost: kagi.com":             "raw-write-cookie",
 			"POST https://evil.example/x\n\nbody": "host",
 		},
 	} {

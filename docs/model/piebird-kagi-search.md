@@ -115,7 +115,7 @@ Today's Kagi News stories in a category, each summarized with its sources.
 
 | Argument | What the model reads |
 | --- | --- |
-| `category` | A category id or name from kagi_news_categories (default world) |
+| `category` | A category's name or id, such as World, Technology, Science, Business or Sports; kagi_news_categories lists all of today's (default world) |
 | `lang` | Language of Kagi News, e.g. en, de, ja (default en) |
 | `limit` | Stories to return (default 10) |
 | `hide` | Stories to leave out: preset ids from kagi_news_filter_presets, or keywords |
@@ -453,7 +453,7 @@ The agent calls `kagi_search` with `{"query":"rust async runtime"}`.
 Kagi needs a sign-in (no Kagi session is kept on this computer). The browser didn't open (no browser on this computer). Ask the person to open http://127.0.0.1:7777/0123abcd/ on this computer and follow it, then call this tool again. Without a browser on this computer: `"/home/ada/.claude/plugins/piebird-kagi-search/native/kagi-vault" sign-in --link` in a terminal, then paste the link from https://kagi.com/settings/user_details when it asks.
 ```
 
-From [`error-sign-in-needed`](../../plugins/piebird-kagi-search/core/model.ftl#L139).
+From [`error-sign-in-needed`](../../plugins/piebird-kagi-search/core/model.ftl#L142).
 
 ## 15. Dates the wrong way round
 
@@ -465,7 +465,7 @@ The agent calls `kagi_search` with `{"query":"go http client timeout","from_date
 from_date 2026-10-12 is after to_date 2026-10-01
 ```
 
-From [`error-dates-order`](../../plugins/piebird-kagi-search/core/model.ftl#L135).
+From [`error-dates-order`](../../plugins/piebird-kagi-search/core/model.ftl#L138).
 
 ## 16. A batch with an empty query
 
@@ -477,7 +477,7 @@ The agent calls `kagi_batch_search` with `{"queries":["go http client timeout","
 " ": the query is empty
 ```
 
-From [`error-empty-query`](../../plugins/piebird-kagi-search/core/model.ftl#L131), [`error-in-query`](../../plugins/piebird-kagi-search/core/model.ftl#L138).
+From [`error-empty-query`](../../plugins/piebird-kagi-search/core/model.ftl#L134), [`error-in-query`](../../plugins/piebird-kagi-search/core/model.ftl#L141).
 
 ## 17. A category Kagi News doesn't have
 
@@ -489,7 +489,7 @@ The agent calls `kagi_news` with `{"category":"astrology"}`.
 Kagi News has no category "astrology" today; kagi_news_categories lists the 3 it has
 ```
 
-From [`error-no-category`](../../plugins/piebird-kagi-search/core/model.ftl#L170).
+From [`error-no-category`](../../plugins/piebird-kagi-search/core/model.ftl#L174).
 
 ## 18. Raw mode outside Kagi
 
@@ -501,7 +501,7 @@ The agent calls `kagi_raw_read` with `{"request":"https://example.com/"}`.
 only kagi.com and news.kagi.com, not example.com: the session goes to Kagi alone
 ```
 
-From [`error-host`](../../plugins/piebird-kagi-search/core/model.ftl#L178).
+From [`error-host`](../../plugins/piebird-kagi-search/core/model.ftl#L182).
 
 ## 19. Raw mode setting the cookie
 
@@ -513,7 +513,7 @@ The agent calls `kagi_raw_write` with `{"request":"POST /settings\nCookie: kagi_
 leave out Cookie and Host: the session and the host are set for Kagi
 ```
 
-From [`error-raw-write-cookie`](../../plugins/piebird-kagi-search/core/model.ftl#L176).
+From [`error-raw-write-cookie`](../../plugins/piebird-kagi-search/core/model.ftl#L180).
 
 ## Skills and rules
 

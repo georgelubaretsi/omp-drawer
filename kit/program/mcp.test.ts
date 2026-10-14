@@ -121,31 +121,23 @@ describe("serveMcp, 2025 era (initialize)", () => {
 		});
 	});
 
-	test("answers a handler that throws as a tool error with its message", async () => {
+	test("answers a handler that throws as a tool error: the catalog's error-crashed with its message", async () => {
 		const answers = await exchange([INITIALIZE, INITIALIZED, call(2, "boom", {})]);
 		expect(answers.get(2)?.result).toEqual({
-			content: [{ type: "text", text: "boom went the handler" }],
+			content: [{ type: "text", text: "It broke: boom went the handler" }],
 			isError: true,
 		});
 	});
 
-	test("refuses arguments the input schema doesn't take, without calling the handler", async () => {
-		const answers = await exchange([
-			INITIALIZE,
-			INITIALIZED,
-			call(2, "echo", { upper: true }),
-			call(3, "echo", { text: 1 }),
-		]);
-		expect(answers.get(2)?.result).toEqual({
-			content: [
-				{
-					type: "text",
-					text: "Input validation error: Invalid arguments for tool echo: data must have required property 'text'",
-				},
-			],
-			isError: true,
-		});
-		expect(answers.get(3)?.result).toMatchObject({ isError: true });
+	test("refuses arguments the input schema doesn't take, in the catalog's words, without calling the handler", async () => {
+		const refused = [{ upper: true }, { text: 1 }, { text: "hi", extra: true }];
+		const answers = await exchange([INITIALIZE, INITIALIZED, ...refused.map((args, i) => call(i + 2, "echo", args))]);
+		for (const id of refused.map((_, i) => i + 2)) {
+			const result = answers.get(id)?.result;
+			expect(result).toMatchObject({ isError: true });
+			// The handler would have thrown, its crash read as "It broke: ...".
+			expect(JSON.stringify(result)).toContain("Those arguments don't fit: ");
+		}
 	});
 
 	test("tells afterCall each outcome with the call's _meta, and answers the same when it fails", async () => {

@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { parse } from "yaml";
 import { configureTemporaryRoute } from "../src/project-config";
 
 function valueAt(value: unknown, path: readonly string[]): unknown {
@@ -19,7 +18,7 @@ describe("configureTemporaryRoute", () => {
 			selectors: ["opencode-go/ox-alpha-free", "openrouter/stealth/ox-alpha"],
 			allowExisting: false,
 		});
-		const value: unknown = parse(configured);
+		const value: unknown = Bun.YAML.parse(configured);
 
 		expect(valueAt(value, ["tools", "approvalMode"])).toBe("confirm");
 		expect(valueAt(value, ["modelRoles", "tmp_designer_ox_alpha"])).toBe("opencode-go/ox-alpha-free");

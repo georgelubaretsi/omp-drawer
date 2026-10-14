@@ -6,11 +6,12 @@ A failed call, or calls the task didn't need, mean the agent stumbled on somethi
 
 | Agent | Prompt | Seconds | Tool calls | Failed |
 | --- | --- | --- | --- | --- |
-| omp | Run bun test, then make shipping() in src/cart.ts never return less than zero. | 6 | 4 | 0 |
+| omp | Run bun test, then make shipping() in src/cart.ts never return less than zero. | 12 | 5 | 0 |
 
 ## omp: Run bun test, then make shipping() in src/cart.ts never return less than zero.
 
-1. `bash`: Running bun test baseline
+1. `bash`: Running test suite
 2. `grep`: Locating shipping function
-3. `edit`: Clamping shipping to non-negative
-4. `bash`: Re-running bun test after change
+3. `read`: Reading shipping function
+4. `edit`: Clamping shipping to non-negative
+5. `bash`: Re-running tests after change

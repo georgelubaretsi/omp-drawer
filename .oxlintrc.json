@@ -125,5 +125,12 @@
       }
     }
   ],
-  "ignorePatterns": ["reference/**", "node_modules/**", "**/node_modules/**", "kit/*/vendor/**", "plugins/*/kit/*/vendor/**"]
+  "ignorePatterns": [
+    "reference/**",
+    "node_modules/**",
+    "**/node_modules/**",
+    "kit/*/vendor/**",
+    "plugins/*/kit/*/vendor/**",
+    "plugins/*/vendor/**"
+  ]
 }

@@ -1,4 +1,4 @@
-import { parseDocument, type Document } from "yaml";
+import { type Document, parseDocument } from "../vendor/yaml/index.js";
 import type { TemporaryAgentMetadata, ThinkingLevel } from "../core/domain";
 import { model } from "../core/model.gen";
 import { VariantError } from "../core/request";

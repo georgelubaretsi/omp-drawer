@@ -30,15 +30,15 @@ Don't edit it: change the catalog or the scenario.
 | 17. The user's words with tool calls | error: user shows only the user's words: leave out thinki… | error: user shows only the user's words: leave out thinki… | error: user shows only the user's words: leave out thinki… |
 | 18. A search with before | error: find searches from line (or the start); it takes n… | error: find searches from line (or the start); it takes n… | error: find searches from line (or the start); it takes n… |
 | 19. before without a line | error: before pages back from a line: give the line too (… | error: before pages back from a line: give the line too (… | error: before pages back from a line: give the line too (… |
-| 20. A list with a search | error: without a session, session_read lists this project… | error: without a session, session_read lists this project… | error: without a session, session_read lists this project… |
-| 21. An argument of the wrong kind | error: line takes a whole number of 1 or more | error: line takes a whole number of 1 or more | error: Input validation error: Invalid arguments for tool… |
+| 20. A list with a search | find searches one session: pick it below, then cal… | find searches one session: pick it below, then cal… | find searches one session: pick it below, then cal… |
+| 21. An argument of the wrong kind | error: line takes a whole number of 1 or more | error: line takes a whole number of 1 or more | error: the arguments don't fit session_read: data/line mu… |
 
 ## 1. The session starts
 
 ### The tool: `session_read` in omp, in every prompt; `mcp__piebird-sessions__session_read` in Claude Code, in every prompt; `session_read` in Codex / desktop apps, in every prompt
 
 ```text
-Read an agent's session journal (.jsonl), omp's, Claude Code's or Codex's, by session id, id prefix or path, and line. Read-only: it changes nothing. Without a session (and nothing else): this project's sessions, or every agent's where the project isn't known, newest first, with each one's id, start, title and first prompt, to find an earlier session to read. With only a line: that entry and what it relates to (the agent text a user's message answered, an ask with its options and what was picked or typed). Without a line or find: the session from its start. before/after page by messages around the line (tool entries only with tools); find searches the session (from line when given); user keeps only the user's words; thinking/tools add the agent's thinking and tool calls; raw returns the exact journal lines (JSONL). The output ends with the next call to make. Use it to read, check or page through a session instead of opening the journal file, whose lines run to tens of thousands of characters.
+Read an agent's session journal (.jsonl), omp's, Claude Code's or Codex's, by session id, id prefix or path, and line. Read-only: it changes nothing. Without a session (and nothing but find): this project's sessions, or every agent's where the project isn't known, newest first, with each one's id, start, title and first prompt, to find an earlier session to read. With only a line: that entry and what it relates to (the agent text a user's message answered, an ask with its options and what was picked or typed). Without a line or find: the session from its start. before/after page by messages around the line (tool entries only with tools); find searches one session (from line when given); user keeps only the user's words; thinking/tools add the agent's thinking and tool calls; raw returns the exact journal lines (JSONL). The output ends with the next call to make. Use it to read, check or page through a session instead of opening the journal file, whose lines run to tens of thousands of characters.
 
 For filtering it doesn't do (by role, tool, time, field, or across sessions), run jq or python over the journal file; a call with only a line prints the journal's path first. Journals: omp's under ~/.omp/agent/sessions/<project>/<time>_<id>.jsonl, Claude Code's under ~/.claude/projects/<project>/<id>.jsonl, Codex's under ~/.codex/sessions/<year>/<month>/<day>/rollout-<time>-<id>.jsonl. Each line is one JSON entry; print only the fields you need, never whole lines.
 ```
@@ -49,7 +49,7 @@ For filtering it doesn't do (by role, tool, time, field, or across sessions), ru
 | `line` | 1-based journal line |
 | `before` | Messages to show before the line |
 | `after` | Messages to show after the line, or from the start when no line (default 5) |
-| `find` | Case-insensitive text to search for |
+| `find` | Case-insensitive text to search one session for; without a session, the sessions to pick it from |
 | `user` | Only the user's messages and ask answers |
 | `thinking` | Include the agent's thinking |
 | `tools` | Include tool calls and results |
@@ -63,7 +63,7 @@ From [`read`](../../plugins/piebird-sessions/core/model.ftl#L3), [`read.session`
 This session: 01a2b3d0-1111-7222-8333-444455556666 (~/.omp/agent/sessions/-shop-api/2026-10-12T09-00-00-000Z_01a2b3d0-1111-7222-8333-444455556666.jsonl)
 ```
 
-From [`self`](../../plugins/piebird-sessions/core/model.ftl#L127).
+From [`self`](../../plugins/piebird-sessions/core/model.ftl#L129).
 
 ### A block of the context, under # piebird-sessions in Claude Code
 
@@ -71,7 +71,7 @@ From [`self`](../../plugins/piebird-sessions/core/model.ftl#L127).
 This session: 0c1a0de0-1111-4222-8333-444455556666 (~/.claude/projects/-home-user-shop-api/0c1a0de0-1111-4222-8333-444455556666.jsonl)
 ```
 
-From [`self`](../../plugins/piebird-sessions/core/model.ftl#L127).
+From [`self`](../../plugins/piebird-sessions/core/model.ftl#L129).
 
 ### The SessionStart hook's context, where Codex runs plugin hooks in Codex / desktop apps
 
@@ -79,7 +79,7 @@ From [`self`](../../plugins/piebird-sessions/core/model.ftl#L127).
 This session: 019f0000-1111-7222-8333-444455556666 (~/.codex/sessions/2026/10/12/rollout-2026-10-12T09-10-00-019f0000-1111-7222-8333-444455556666.jsonl)
 ```
 
-From [`self`](../../plugins/piebird-sessions/core/model.ftl#L127).
+From [`self`](../../plugins/piebird-sessions/core/model.ftl#L129).
 
 ## 2. The latest sessions
 
@@ -95,7 +95,7 @@ Sessions in ~/.omp/agent/sessions/-shop-api, newest first:
 read one: session_read {"session":"01a2b3c4-5d6e-7f80-9a1b-2c3d4e5f6a7b","user":true,"after":20}
 ```
 
-From [`list-item`](../../plugins/piebird-sessions/core/model.ftl#L112), [`list-this`](../../plugins/piebird-sessions/core/model.ftl#L113), [`list-prompt`](../../plugins/piebird-sessions/core/model.ftl#L121), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L22), [`list-title`](../../plugins/piebird-sessions/core/model.ftl#L120), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`list-read`](../../plugins/piebird-sessions/core/model.ftl#L122), [`list-header`](../../plugins/piebird-sessions/core/model.ftl#L108).
+From [`list-item`](../../plugins/piebird-sessions/core/model.ftl#L114), [`list-this`](../../plugins/piebird-sessions/core/model.ftl#L115), [`list-prompt`](../../plugins/piebird-sessions/core/model.ftl#L123), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L24), [`list-title`](../../plugins/piebird-sessions/core/model.ftl#L122), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`list-read`](../../plugins/piebird-sessions/core/model.ftl#L124), [`list-header`](../../plugins/piebird-sessions/core/model.ftl#L110).
 
 ### The tool's result in Claude Code
 
@@ -104,7 +104,7 @@ Sessions in ~/.claude/projects/-home-user-shop-api, newest first:
 - 0c1a0de0-1111-4222-8333-444455556666 · 2026-10-12T09:05:00.000Z · this session · first prompt: What did we decide about the cache yesterday?
 ```
 
-From [`list-item`](../../plugins/piebird-sessions/core/model.ftl#L112), [`list-this`](../../plugins/piebird-sessions/core/model.ftl#L113), [`list-prompt`](../../plugins/piebird-sessions/core/model.ftl#L121), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L22), [`list-header`](../../plugins/piebird-sessions/core/model.ftl#L108).
+From [`list-item`](../../plugins/piebird-sessions/core/model.ftl#L114), [`list-this`](../../plugins/piebird-sessions/core/model.ftl#L115), [`list-prompt`](../../plugins/piebird-sessions/core/model.ftl#L123), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L24), [`list-header`](../../plugins/piebird-sessions/core/model.ftl#L110).
 
 ### The tool's result in Codex / desktop apps
 
@@ -118,7 +118,7 @@ Sessions of every agent and project, newest first:
 read one: session_read {"session":"019f0000-1111-7222-8333-444455556666","user":true,"after":20}
 ```
 
-From [`list-item`](../../plugins/piebird-sessions/core/model.ftl#L112), [`list-agent`](../../plugins/piebird-sessions/core/model.ftl#L114), [`list-project`](../../plugins/piebird-sessions/core/model.ftl#L119), [`list-prompt`](../../plugins/piebird-sessions/core/model.ftl#L121), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L22), [`list-title`](../../plugins/piebird-sessions/core/model.ftl#L120), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`list-read`](../../plugins/piebird-sessions/core/model.ftl#L122), [`list-header-all`](../../plugins/piebird-sessions/core/model.ftl#L110).
+From [`list-item`](../../plugins/piebird-sessions/core/model.ftl#L114), [`list-agent`](../../plugins/piebird-sessions/core/model.ftl#L116), [`list-project`](../../plugins/piebird-sessions/core/model.ftl#L121), [`list-prompt`](../../plugins/piebird-sessions/core/model.ftl#L123), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L24), [`list-title`](../../plugins/piebird-sessions/core/model.ftl#L122), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`list-read`](../../plugins/piebird-sessions/core/model.ftl#L124), [`list-header-all`](../../plugins/piebird-sessions/core/model.ftl#L112).
 
 ## 3. A session from its start
 
@@ -159,7 +159,7 @@ lines 3–9 · 5 entries
 earlier: start of session · later: session_read {"session":"01a2b3c4-5d6e","line":9,"after":5}
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`part-ask`](../../plugins/piebird-sessions/core/model.ftl#L39), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`header`](../../plugins/piebird-sessions/core/model.ftl#L28), [`page-lines`](../../plugins/piebird-sessions/core/model.ftl#L78), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`page-earlier-start`](../../plugins/piebird-sessions/core/model.ftl#L83), [`page-later`](../../plugins/piebird-sessions/core/model.ftl#L84), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L22).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`part-ask`](../../plugins/piebird-sessions/core/model.ftl#L41), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L34), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`header`](../../plugins/piebird-sessions/core/model.ftl#L30), [`page-lines`](../../plugins/piebird-sessions/core/model.ftl#L80), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`page-earlier-start`](../../plugins/piebird-sessions/core/model.ftl#L85), [`page-later`](../../plugins/piebird-sessions/core/model.ftl#L86), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L24).
 
 ## 4. What a user's message answered
 
@@ -177,7 +177,7 @@ Done: product pages are cached in Redis for 60 seconds and skipped when a sessio
 around: session_read {"session":"01a2b3c4-5d6e","line":10,"before":5,"after":5}
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`cite-text`](../../plugins/piebird-sessions/core/model.ftl#L66), [`header`](../../plugins/piebird-sessions/core/model.ftl#L28), [`cite-answers`](../../plugins/piebird-sessions/core/model.ftl#L64), [`cite-file`](../../plugins/piebird-sessions/core/model.ftl#L63), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`cite-around`](../../plugins/piebird-sessions/core/model.ftl#L74).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L34), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`cite-text`](../../plugins/piebird-sessions/core/model.ftl#L68), [`header`](../../plugins/piebird-sessions/core/model.ftl#L30), [`cite-answers`](../../plugins/piebird-sessions/core/model.ftl#L66), [`cite-file`](../../plugins/piebird-sessions/core/model.ftl#L65), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`cite-around`](../../plugins/piebird-sessions/core/model.ftl#L76).
 
 ## 5. What a user's message followed
 
@@ -195,7 +195,7 @@ Thanks. Also log cache hits so we can see the hit rate.
 around: session_read {"session":"01a2b3c4-5d6e","line":11,"before":5,"after":5}
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`cite-text`](../../plugins/piebird-sessions/core/model.ftl#L66), [`header`](../../plugins/piebird-sessions/core/model.ftl#L28), [`cite-follows`](../../plugins/piebird-sessions/core/model.ftl#L65), [`cite-file`](../../plugins/piebird-sessions/core/model.ftl#L63), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`cite-around`](../../plugins/piebird-sessions/core/model.ftl#L74).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L34), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`cite-text`](../../plugins/piebird-sessions/core/model.ftl#L68), [`header`](../../plugins/piebird-sessions/core/model.ftl#L30), [`cite-follows`](../../plugins/piebird-sessions/core/model.ftl#L67), [`cite-file`](../../plugins/piebird-sessions/core/model.ftl#L65), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`cite-around`](../../plugins/piebird-sessions/core/model.ftl#L76).
 
 ## 6. An ask, from its question
 
@@ -219,7 +219,7 @@ answered on line 8 · 2026-10-11T09:05:00.000Z
 around: session_read {"session":"01a2b3c4-5d6e","line":6,"before":5,"after":5}
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`cite-text`](../../plugins/piebird-sessions/core/model.ftl#L66), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`cite-answered`](../../plugins/piebird-sessions/core/model.ftl#L71), [`kind-ask-question`](../../plugins/piebird-sessions/core/model.ftl#L31), [`cite-file`](../../plugins/piebird-sessions/core/model.ftl#L63), [`header`](../../plugins/piebird-sessions/core/model.ftl#L28), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`cite-around`](../../plugins/piebird-sessions/core/model.ftl#L74).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`cite-text`](../../plugins/piebird-sessions/core/model.ftl#L68), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`cite-answered`](../../plugins/piebird-sessions/core/model.ftl#L73), [`kind-ask-question`](../../plugins/piebird-sessions/core/model.ftl#L33), [`cite-file`](../../plugins/piebird-sessions/core/model.ftl#L65), [`header`](../../plugins/piebird-sessions/core/model.ftl#L30), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`cite-around`](../../plugins/piebird-sessions/core/model.ftl#L76).
 
 ## 7. An ask, from its answer
 
@@ -242,7 +242,7 @@ ttl: How long may a cached page be stale?
 around: session_read {"session":"01a2b3c4-5d6e","line":8,"before":5,"after":5}
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`kind-ask-question`](../../plugins/piebird-sessions/core/model.ftl#L31), [`header`](../../plugins/piebird-sessions/core/model.ftl#L28), [`cite-asked`](../../plugins/piebird-sessions/core/model.ftl#L69), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`cite-file`](../../plugins/piebird-sessions/core/model.ftl#L63), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`cite-around`](../../plugins/piebird-sessions/core/model.ftl#L74).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`kind-ask-question`](../../plugins/piebird-sessions/core/model.ftl#L33), [`header`](../../plugins/piebird-sessions/core/model.ftl#L30), [`cite-asked`](../../plugins/piebird-sessions/core/model.ftl#L71), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L34), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`cite-file`](../../plugins/piebird-sessions/core/model.ftl#L65), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`cite-around`](../../plugins/piebird-sessions/core/model.ftl#L76).
 
 ## 8. An entry no reader shows
 
@@ -257,7 +257,7 @@ line 7 · other (tool_execution_start) · 2026-10-11T09:04:30.000Z
 around: session_read {"session":"01a2b3c4-5d6e","line":7,"before":5,"after":5}
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`kind-other`](../../plugins/piebird-sessions/core/model.ftl#L35), [`cite-text`](../../plugins/piebird-sessions/core/model.ftl#L66), [`cite-file`](../../plugins/piebird-sessions/core/model.ftl#L63), [`header`](../../plugins/piebird-sessions/core/model.ftl#L28), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`cite-around`](../../plugins/piebird-sessions/core/model.ftl#L74).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`kind-other`](../../plugins/piebird-sessions/core/model.ftl#L37), [`cite-text`](../../plugins/piebird-sessions/core/model.ftl#L68), [`cite-file`](../../plugins/piebird-sessions/core/model.ftl#L65), [`header`](../../plugins/piebird-sessions/core/model.ftl#L30), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`cite-around`](../../plugins/piebird-sessions/core/model.ftl#L76).
 
 ## 9. A page with thinking and tool calls
 
@@ -288,7 +288,7 @@ lines 4–6 · 3 entries
 earlier: session_read {"session":"01a2b3c4-5d6e","line":4,"before":2,"thinking":true,"tools":true} · later: session_read {"session":"01a2b3c4-5d6e","line":6,"after":2,"thinking":true,"tools":true}
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`part-thinking`](../../plugins/piebird-sessions/core/model.ftl#L38), [`part-tool-call`](../../plugins/piebird-sessions/core/model.ftl#L41), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`kind-tool-result`](../../plugins/piebird-sessions/core/model.ftl#L33), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`part-ask`](../../plugins/piebird-sessions/core/model.ftl#L39), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`header`](../../plugins/piebird-sessions/core/model.ftl#L28), [`page-lines`](../../plugins/piebird-sessions/core/model.ftl#L78), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`page-earlier`](../../plugins/piebird-sessions/core/model.ftl#L82), [`page-later`](../../plugins/piebird-sessions/core/model.ftl#L84), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L22).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`part-thinking`](../../plugins/piebird-sessions/core/model.ftl#L40), [`part-tool-call`](../../plugins/piebird-sessions/core/model.ftl#L43), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`kind-tool-result`](../../plugins/piebird-sessions/core/model.ftl#L35), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`part-ask`](../../plugins/piebird-sessions/core/model.ftl#L41), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L34), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`header`](../../plugins/piebird-sessions/core/model.ftl#L30), [`page-lines`](../../plugins/piebird-sessions/core/model.ftl#L80), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`page-earlier`](../../plugins/piebird-sessions/core/model.ftl#L84), [`page-later`](../../plugins/piebird-sessions/core/model.ftl#L86), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L24).
 
 ## 10. A long message, cut in the middle
 
@@ -316,7 +316,7 @@ lines 11–12 · 2 entries
 earlier: session_read {"session":"01a2b3c4-5d6e","line":11,"before":1} · later: end of session (12 lines)
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`part-ask`](../../plugins/piebird-sessions/core/model.ftl#L39), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`header`](../../plugins/piebird-sessions/core/model.ftl#L28), [`part-cut`](../../plugins/piebird-sessions/core/model.ftl#L44), [`page-lines`](../../plugins/piebird-sessions/core/model.ftl#L78), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`page-earlier`](../../plugins/piebird-sessions/core/model.ftl#L82), [`page-later-end`](../../plugins/piebird-sessions/core/model.ftl#L85), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L22).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`part-ask`](../../plugins/piebird-sessions/core/model.ftl#L41), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L34), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`header`](../../plugins/piebird-sessions/core/model.ftl#L30), [`part-cut`](../../plugins/piebird-sessions/core/model.ftl#L46), [`page-lines`](../../plugins/piebird-sessions/core/model.ftl#L80), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`page-earlier`](../../plugins/piebird-sessions/core/model.ftl#L84), [`page-later-end`](../../plugins/piebird-sessions/core/model.ftl#L87), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L24).
 
 ## 11. Only the user's words
 
@@ -347,7 +347,7 @@ lines 3–11 · 4 entries
 earlier: start of session · later: end of session (12 lines)
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`header`](../../plugins/piebird-sessions/core/model.ftl#L28), [`page-lines`](../../plugins/piebird-sessions/core/model.ftl#L78), [`page-earlier-start`](../../plugins/piebird-sessions/core/model.ftl#L83), [`page-later-end`](../../plugins/piebird-sessions/core/model.ftl#L85), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L22).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L34), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`header`](../../plugins/piebird-sessions/core/model.ftl#L30), [`page-lines`](../../plugins/piebird-sessions/core/model.ftl#L80), [`page-earlier-start`](../../plugins/piebird-sessions/core/model.ftl#L85), [`page-later-end`](../../plugins/piebird-sessions/core/model.ftl#L87), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L24).
 
 ## 12. A search
 
@@ -377,7 +377,7 @@ Here is the plan for logging cache hits. 1. In src/cache/products.ts, the read-t
 read one: session_read {"session":"01a2b3c4-5d6e","line":3,"before":3,"after":3}
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`part-ask`](../../plugins/piebird-sessions/core/model.ftl#L39), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`header`](../../plugins/piebird-sessions/core/model.ftl#L28), [`find-snippet`](../../plugins/piebird-sessions/core/model.ftl#L90), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`find-read`](../../plugins/piebird-sessions/core/model.ftl#L104), [`find-count`](../../plugins/piebird-sessions/core/model.ftl#L97).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`part-ask`](../../plugins/piebird-sessions/core/model.ftl#L41), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L34), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`header`](../../plugins/piebird-sessions/core/model.ftl#L30), [`find-snippet`](../../plugins/piebird-sessions/core/model.ftl#L92), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`find-read`](../../plugins/piebird-sessions/core/model.ftl#L106), [`find-count`](../../plugins/piebird-sessions/core/model.ftl#L99).
 
 ## 13. A search, as raw lines
 
@@ -393,7 +393,7 @@ The agent calls `session_read` with `{"session":"01a2b3c4-5d6e","find":"Redis","
 read one: session_read {"session":"01a2b3c4-5d6e","line":6,"before":3,"after":3,"raw":true}
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`part-ask`](../../plugins/piebird-sessions/core/model.ftl#L39), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`raw-line`](../../plugins/piebird-sessions/core/model.ftl#L48), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`find-read`](../../plugins/piebird-sessions/core/model.ftl#L104), [`find-count`](../../plugins/piebird-sessions/core/model.ftl#L97).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`part-ask`](../../plugins/piebird-sessions/core/model.ftl#L41), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L34), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`raw-line`](../../plugins/piebird-sessions/core/model.ftl#L50), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`find-read`](../../plugins/piebird-sessions/core/model.ftl#L106), [`find-count`](../../plugins/piebird-sessions/core/model.ftl#L99).
 
 ## 14. An id two sessions start with
 
@@ -407,7 +407,7 @@ session 01a2b3c4 matches 2 sessions; give a longer id:
   /home/user/.omp/agent/sessions/-shop-api/2026-10-11T09-00-00-000Z_01a2b3c4-5d6e-7f80-9a1b-2c3d4e5f6a7b.jsonl — Add a response cache
 ```
 
-From [`error-ambiguous`](../../plugins/piebird-sessions/core/model.ftl#L133), [`ambiguous-file-titled`](../../plugins/piebird-sessions/core/model.ftl#L138).
+From [`error-ambiguous`](../../plugins/piebird-sessions/core/model.ftl#L138), [`ambiguous-file-titled`](../../plugins/piebird-sessions/core/model.ftl#L143).
 
 ## 15. No such session
 
@@ -419,7 +419,7 @@ The agent calls `session_read` with `{"session":"01a9","line":1}`.
 session 01a9 is not in ~/.omp/agent/sessions or ~/.claude/projects or ~/.codex/sessions
 ```
 
-From [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`join-or`](../../plugins/piebird-sessions/core/model.ftl#L23), [`error-not-found`](../../plugins/piebird-sessions/core/model.ftl#L132).
+From [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`join-or`](../../plugins/piebird-sessions/core/model.ftl#L25), [`error-not-found`](../../plugins/piebird-sessions/core/model.ftl#L137).
 
 ## 16. A line past the end
 
@@ -431,7 +431,7 @@ The agent calls `session_read` with `{"session":"01a2b3c4-5d6e","line":40}`.
 /home/user/.omp/agent/sessions/-shop-api/2026-10-11T09-00-00-000Z_01a2b3c4-5d6e-7f80-9a1b-2c3d4e5f6a7b.jsonl has 12 lines
 ```
 
-From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L29), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L30), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L32), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L52), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L54), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L37), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L56), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L53), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L57), [`error-past-end`](../../plugins/piebird-sessions/core/model.ftl#L139).
+From [`kind-user`](../../plugins/piebird-sessions/core/model.ftl#L31), [`kind-assistant`](../../plugins/piebird-sessions/core/model.ftl#L32), [`kind-ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L34), [`ask-question`](../../plugins/piebird-sessions/core/model.ftl#L54), [`ask-option-described`](../../plugins/piebird-sessions/core/model.ftl#L56), [`part-text`](../../plugins/piebird-sessions/core/model.ftl#L39), [`ask-picked`](../../plugins/piebird-sessions/core/model.ftl#L58), [`ask-answer`](../../plugins/piebird-sessions/core/model.ftl#L57), [`ask-option`](../../plugins/piebird-sessions/core/model.ftl#L55), [`ask-typed`](../../plugins/piebird-sessions/core/model.ftl#L59), [`error-past-end`](../../plugins/piebird-sessions/core/model.ftl#L144).
 
 ## 17. The user's words with tool calls
 
@@ -443,7 +443,7 @@ The agent calls `session_read` with `{"session":"01a2b3c4-5d6e","user":true,"too
 user shows only the user's words: leave out thinking and tools
 ```
 
-From [`error-user-with-details`](../../plugins/piebird-sessions/core/model.ftl#L143).
+From [`error-user-with-details`](../../plugins/piebird-sessions/core/model.ftl#L148).
 
 ## 18. A search with before
 
@@ -455,7 +455,7 @@ The agent calls `session_read` with `{"session":"01a2b3c4-5d6e","find":"cache","
 find searches from line (or the start); it takes no before or after
 ```
 
-From [`error-find-with-page`](../../plugins/piebird-sessions/core/model.ftl#L141).
+From [`error-find-with-page`](../../plugins/piebird-sessions/core/model.ftl#L146).
 
 ## 19. before without a line
 
@@ -467,19 +467,49 @@ The agent calls `session_read` with `{"session":"01a2b3c4-5d6e","before":2}`.
 before pages back from a line: give the line too (without a line, the session is read from the start)
 ```
 
-From [`error-before-without-line`](../../plugins/piebird-sessions/core/model.ftl#L140).
+From [`error-before-without-line`](../../plugins/piebird-sessions/core/model.ftl#L145).
 
 ## 20. A list with a search
 
 The agent calls `session_read` with `{"find":"cache"}`.
 
-### A tool error in omp, Claude Code and Codex / desktop apps
+### The tool's result in omp
 
 ```text
-without a session, session_read lists this project's sessions and takes nothing else: give a session to read it
+find searches one session: pick it below, then call session_read with its session and find "cache".
+Sessions in ~/.omp/agent/sessions/-shop-api, newest first:
+- 01a2b3d0-1111-7222-8333-444455556666 · 2026-10-12T09:00:00.000Z · this session · first prompt: What did we decide about the cache yesterday?
+- 01a2b3c4-5d6e-7f80-9a1b-2c3d4e5f6a7b · 2026-10-11T09:00:00.000Z · Add a response cache · first prompt: The /products endpoint is slow. Can you add a cache?
+- 01a2b3c4-9999-7aaa-8bbb-ccccdddd0000 · 2026-10-11T08:30:00.000Z · Fix checkout totals
+read one: session_read {"session":"01a2b3c4-5d6e-7f80-9a1b-2c3d4e5f6a7b","user":true,"after":20}
 ```
 
-From [`error-list-with-params`](../../plugins/piebird-sessions/core/model.ftl#L142).
+From [`list-item`](../../plugins/piebird-sessions/core/model.ftl#L114), [`list-this`](../../plugins/piebird-sessions/core/model.ftl#L115), [`list-prompt`](../../plugins/piebird-sessions/core/model.ftl#L123), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L24), [`list-title`](../../plugins/piebird-sessions/core/model.ftl#L122), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`list-read`](../../plugins/piebird-sessions/core/model.ftl#L124), [`list-header`](../../plugins/piebird-sessions/core/model.ftl#L110), [`find-without-session`](../../plugins/piebird-sessions/core/model.ftl#L19).
+
+### The tool's result in Claude Code
+
+```text
+find searches one session: pick it below, then call session_read with its session and find "cache".
+Sessions in ~/.claude/projects/-home-user-shop-api, newest first:
+- 0c1a0de0-1111-4222-8333-444455556666 · 2026-10-12T09:05:00.000Z · this session · first prompt: What did we decide about the cache yesterday?
+```
+
+From [`list-item`](../../plugins/piebird-sessions/core/model.ftl#L114), [`list-this`](../../plugins/piebird-sessions/core/model.ftl#L115), [`list-prompt`](../../plugins/piebird-sessions/core/model.ftl#L123), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L24), [`list-header`](../../plugins/piebird-sessions/core/model.ftl#L110), [`find-without-session`](../../plugins/piebird-sessions/core/model.ftl#L19).
+
+### The tool's result in Codex / desktop apps
+
+```text
+find searches one session: pick it below, then call session_read with its session and find "cache".
+Sessions of every agent and project, newest first:
+- 019f0000-1111-7222-8333-444455556666 · 2026-10-12T09:10:01.000Z · Codex · in ~/shop-api · first prompt: What did we decide about the cache yesterday?
+- 0c1a0de0-1111-4222-8333-444455556666 · 2026-10-12T09:05:00.000Z · Claude Code · in ~/shop-api · first prompt: What did we decide about the cache yesterday?
+- 01a2b3d0-1111-7222-8333-444455556666 · 2026-10-12T09:00:00.000Z · omp · in ~/shop-api · first prompt: What did we decide about the cache yesterday?
+- 01a2b3c4-5d6e-7f80-9a1b-2c3d4e5f6a7b · 2026-10-11T09:00:00.000Z · omp · in ~/shop-api · Add a response cache · first prompt: The /products endpoint is slow. Can you add a cache?
+- 01a2b3c4-9999-7aaa-8bbb-ccccdddd0000 · 2026-10-11T08:30:00.000Z · omp · Fix checkout totals
+read one: session_read {"session":"019f0000-1111-7222-8333-444455556666","user":true,"after":20}
+```
+
+From [`list-item`](../../plugins/piebird-sessions/core/model.ftl#L114), [`list-agent`](../../plugins/piebird-sessions/core/model.ftl#L116), [`list-project`](../../plugins/piebird-sessions/core/model.ftl#L121), [`list-prompt`](../../plugins/piebird-sessions/core/model.ftl#L123), [`join-dot`](../../plugins/piebird-sessions/core/model.ftl#L24), [`list-title`](../../plugins/piebird-sessions/core/model.ftl#L122), [`next-call`](../../plugins/piebird-sessions/core/model.ftl#L17), [`list-read`](../../plugins/piebird-sessions/core/model.ftl#L124), [`list-header-all`](../../plugins/piebird-sessions/core/model.ftl#L112), [`find-without-session`](../../plugins/piebird-sessions/core/model.ftl#L19).
 
 ## 21. An argument of the wrong kind
 
@@ -491,11 +521,12 @@ The agent calls `session_read` with `{"session":"01a2b3c4-5d6e","line":"ten"}`.
 line takes a whole number of 1 or more
 ```
 
-From [`error-bad-argument`](../../plugins/piebird-sessions/core/model.ftl#L144).
+From [`error-bad-argument`](../../plugins/piebird-sessions/core/model.ftl#L149).
 
 ### A tool error in Codex / desktop apps
 
 ```text
-Input validation error: Invalid arguments for tool session_read: data/line must be integer
+the arguments don't fit session_read: data/line must be integer
 ```
 
+From [`error-arguments`](../../plugins/piebird-sessions/core/model.ftl#L136).

@@ -18,4 +18,7 @@ text.set("read.thinking", model.text("read.thinking"));
 text.set("read.tools", model.text("read.tools"));
 text.set("read.user", model.text("read.user"));
 
-export const operations = parseOperations(SOURCE, text);
+export const operations = parseOperations(SOURCE, text, {
+	crashed: cause => model.text("error-crashed", { cause }),
+	badArguments: problem => model.text("error-arguments", { problem }),
+});

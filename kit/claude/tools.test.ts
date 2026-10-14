@@ -14,6 +14,8 @@ const model = new Catalog<Record<string, undefined>>(
 		"found = Found it.",
 		"gone = It is gone.",
 		"hint = Use look.",
+		"error-crashed = It broke: { $cause }",
+		"error-arguments = Those arguments don't fit: { $problem }",
 	].join("\n"),
 );
 const text = new Map<string, ModelText>(["look", "look.word", "note"].map(id => [id, model.text(id)]));
@@ -29,7 +31,10 @@ const SOURCE = JSON.stringify({
 		sync: { input: { type: "object" }, output: { type: "object" } },
 	},
 });
-const operations = parseOperations(SOURCE, text);
+const operations = parseOperations(SOURCE, text, {
+	crashed: cause => model.textById("error-crashed", { cause }),
+	badArguments: problem => model.textById("error-arguments", { problem }),
+});
 
 test("each tool's spec: its text, its described input, and in front only when it always loads", () => {
 	expect(toolSpecs(operations)).toEqual([
@@ -91,11 +96,11 @@ test("dispatch runs the handler of the operation the full name names", async () 
 	expect(await dispatch(operations, handlers, "mcp__piebird-x__note_down", {})).toEqual({ deny: "It is gone." });
 });
 
-test("dispatch answers a thrown handler, or a missing one, as an error", async () => {
+test("dispatch answers a thrown handler, or a missing one, as an error in the catalog's words", async () => {
 	const handlers: Handlers = { look: () => Promise.reject(new Error("the lookup broke")) };
-	expect(await dispatch(operations, handlers, "mcp__p__look", {})).toEqual({ deny: "the lookup broke" });
+	expect(await dispatch(operations, handlers, "mcp__p__look", {})).toEqual({ deny: "It broke: the lookup broke" });
 	expect(await dispatch(operations, handlers, "mcp__p__note_down", {})).toEqual({
-		deny: "no handler for operation note",
+		deny: "It broke: no handler for operation note",
 	});
 });
 

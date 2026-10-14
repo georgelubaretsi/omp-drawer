@@ -37,8 +37,11 @@ describe("the person's choices", () => {
 			problems: [],
 		});
 	});
-	test("set to the default, leave the file, and an emptied section goes", () => {
-		expect(withChoices({ demo: { search: "only" } }, demo, { search: "first" }).file).toEqual({});
+	test("the default picked is kept, over any project's choice; Automatic removes it, and an emptied section goes", () => {
+		expect(withChoices({ demo: { search: "only" } }, demo, { search: "first" }).file).toEqual({
+			demo: { search: "first" },
+		});
+		expect(withChoices({ demo: { search: "only" } }, demo, { search: "" }).file).toEqual({});
 		expect(withChoices({ demo: { search: "only", folder: "x" } }, demo, { folder: "" }).file).toEqual({
 			demo: { search: "only" },
 		});
@@ -56,11 +59,16 @@ const post = (path: string, body: unknown) =>
 	settingsHandler([demo], path)(new Request("http://x/", { method: "POST", body: JSON.stringify(body) }));
 
 describe("the page", () => {
-	test("shows the person's own choice", async () => {
+	test("shows the person's own choice, or Automatic without one", async () => {
 		writeFileSync(at("shown.json"), JSON.stringify({ demo: { search: "only" } }));
 		const html = await (await settingsHandler([demo], at("shown.json"))(new Request("http://x/"))).text();
 		expect(html).toContain('value="only" checked');
 		expect(html).not.toContain('value="first" checked');
+		expect(html).not.toContain('value="" checked');
+		writeFileSync(at("unset.json"), JSON.stringify({}));
+		const unset = await (await settingsHandler([demo], at("unset.json"))(new Request("http://x/"))).text();
+		expect(unset).toContain('value="" checked');
+		expect(unset).not.toContain('value="first" checked');
 	});
 	test("saves, creating the folder; a refused choice changes nothing", async () => {
 		const path = join(tmp, "new/.agents/piebird/settings.json");

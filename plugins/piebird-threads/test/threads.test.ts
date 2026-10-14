@@ -176,13 +176,18 @@ describe("the threads folder", () => {
 			path: path.join(project, "docs", "threads"),
 			name: "docs/threads",
 		});
-		setting(home, "threads/shop-api");
-		expect(await threadsFolder(io, place(), undefined)).toEqual({
-			path: path.join(home, "threads", "shop-api"),
-			name: "threads/shop-api",
+		// omp's choice kept in the project: over the project's file, relative to the project.
+		expect(await threadsFolder(io, place(), { project: "repo/threads" })).toEqual({
+			path: path.join(project, "repo", "threads"),
+			name: "repo/threads",
 		});
-		expect(await threadsFolder(io, place(), "notes/threads")).toEqual(folder);
-		expect(await threadsFolder(io, place(), "shared")).toMatchObject({ name: "threads/shop-api" });
+		setting(home, "threads/shop-api");
+		const persons = { path: path.join(home, "threads", "shop-api"), name: "threads/shop-api" };
+		expect(await threadsFolder(io, place(), undefined)).toEqual(persons);
+		// A repo can't override the person.
+		expect(await threadsFolder(io, place(), { project: "repo/threads" })).toEqual(persons);
+		expect(await threadsFolder(io, place(), { person: "notes/threads" })).toEqual(folder);
+		expect(await threadsFolder(io, place(), { person: "shared" })).toMatchObject({ name: "threads/shop-api" });
 	});
 
 	test("is never guessed: without either a project has none, and a .omp/threads.json naming none fails", async () => {

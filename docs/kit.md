@@ -11,14 +11,18 @@ Relative imports only and no runtime APIs (the core override in `.oxlintrc.json`
 check of where relative imports lead), so it runs in omp, in a Claude Code mod and in a program alike.
 
 - `model.ts`: the strict Fluent catalog. Only a `Catalog` makes `ModelText`, the one type the
-  shells send to a model; `core/model.gen.ts` types each message and its variables. `textById`
-  words a message whose id arrives at run time, such as a vault's error, with the same refusals.
+  shells send to a model; its brand is written nowhere else (the build checks), and
+  `core/model.gen.ts` types each message and its variables. `textById` words a message whose id
+  arrives at run time, such as a vault's error, with the same refusals.
 - `operations.ts`: a plugin's operations (`core/operations.json`, joined with their text by the
   generated `core/operations.gen.ts`) and the contract with the code that performs them: a
   `Handler` takes the input as sent, and the call's signal, which aborts when the caller cancels
   the call (omp's tool signal, an MCP client's `notifications/cancelled`), and ends with an
   `Outcome`, its answer (`ModelText` and data) or one of its declared errors (`ModelText` from
-  `error-<id>`). `Io.run` kills a program when the signal it's given aborts.
+  `error-<id>`). A tool that can't answer so takes its words from the catalog too: `crashed`
+  (`error-crashed`) when its code fails, `badArguments` (`error-arguments`) when its arguments
+  don't fit its schema; a plugin with tools has both. `Io.run` kills a program when the signal
+  it's given aborts.
 - `settings.ts`, `declared.ts`: a plugin's declarations (`core/settings.gen.ts`) and its settings,
   resolved from the two settings files and the agent's own screen ([Settings](manifests.md#settings)).
 - `io.ts`: `Io`, what a shell lends core code that needs the outside world (reading a file whole
@@ -37,11 +41,13 @@ check of where relative imports lead), so it runs in omp, in a Claude Code mod a
 
 - `registerOperations(pi, operations, handlersFor)`: one tool per operation the model gets, kept
   in front of tool search when its `alwaysLoad` hint says so. Each call is performed by the
-  handler `handlersFor(ctx)` gives for the calling session's context; a declared error, a handler
-  that throws and an operation without one come back as a tool error.
-- `ompPlace(ctx, dir)`; `ompChoices(plugin, cwd)`: omp's own choices for the plugin's settings
-  (project overrides over the plugins lock file, as omp merges them), the agent level of
-  `readSettings`; `addToSystemPrompt(pi, text)`.
+  handler `handlersFor(ctx)` gives for the calling session's context; a declared error comes back
+  as a tool error in its text, and a handler that throws, or an operation without one, as
+  `error-crashed`.
+- `ompPlace(ctx, dir)`; `ompChoices(plugin, cwd)`: omp's own choices for the plugin's settings,
+  the person's (the plugins lock file: the agent level of `readSettings`) and the project's
+  (`.omp/plugin-overrides.json`, which a repo can hold: it ranks with the project's settings
+  file); `addToSystemPrompt(pi, text)`.
 
 ## claude: the Claude Code mod
 
@@ -65,13 +71,13 @@ kit's functions use. The build refuses a hooks module whose copy differs from th
 ## program: the Bun program
 
 For Codex and the desktop apps. `main.ts` calls `runProgram(argv, { name, parts, settings })`,
-where `parts(agent)` returns the operations, handlers, instructions and hook for the agent's own
-choices (`-agent key=value`, from a host whose settings screen feeds the server's arguments, as
-the `.mcpb` for Claude chat will pass its `user_config`), and `settings` is the plugin's
-declarations (`core/settings.gen.ts`), for a plugin that has some:
+where `parts()` returns the operations, handlers, instructions and hook, with the person's
+settings read from their settings files (no host passes the program settings of its own), and
+`settings` is the plugin's declarations (`core/settings.gen.ts`), for a plugin that has some:
 
 - `mcp`: the tools over MCP on stdio (`@modelcontextprotocol/server`), for clients of the 2025
-  handshake and of the 2026-07-28 protocol; bad arguments come back in the SDK's words. A result
+  handshake and of the 2026-07-28 protocol. The server checks each call's arguments against the
+  tool's schema itself and answers ones that don't fit with `error-arguments`. A result
   is the outcome's text only, what the model reads in every shell: Codex shows a result's
   structured content instead of its text, so the tools declare no output schema. `afterCall`
   hears each outcome with the call's `_meta` (Codex sends its session id there).

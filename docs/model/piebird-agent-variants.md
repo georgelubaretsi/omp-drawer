@@ -12,7 +12,7 @@ Don't edit it: change the catalog or the scenario.
 | Step | omp |
 | --- | --- |
 | 1. The session starts | tool `agent_variant_setup` |
-| 2. Before the project's instructions are checked | Project write not approved. Check repository instr… |
+| 2. Before the project's instructions are checked | Project write not approved. Check that the reposit… |
 | 3. A paid route the user hasn't approved | Free/subscription routes available: opencode/ox-al… |
 | 4. A variant on the free route | Configured temporary designer variant tmp-designer… |
 | 5. The same variant again | error: tmp-designer-ox-alpha-free already exists. Set rep… |
@@ -49,7 +49,7 @@ The agent calls `agent_variant_setup` with `{"modelQuery":"ox alpha"}`.
 ### The tool's result in omp
 
 ```text
-Project write not approved. Check repository instructions and status before creating .omp agent configuration.
+Project write not approved. Check that the repository's instructions allow writing .omp agent configuration (`git ls-files -- '*AGENTS.md' '*CLAUDE.md'` lists them; none means nothing forbids it), and that .omp has no changes not committed (`git status --short -- .omp`): if it has, tell the user and stop, since the tool won't write over them. Otherwise call agent_variant_setup again with projectWriteApproved: true. Don't edit .omp files yourself or move the variant to another scope to get around this.
 ```
 
 From [`blocked`](../../plugins/piebird-agent-variants/core/model.ftl#L17).
@@ -74,7 +74,7 @@ The agent calls `agent_variant_setup` with `{"sourceAgent":"designer","modelQuer
 ### The tool's result in omp
 
 ```text
-Configured temporary designer variant tmp-designer-ox-alpha-free using opencode/ox-alpha-free. Use agent “tmp-designer-ox-alpha-free” for the user's original request.
+Configured temporary designer variant tmp-designer-ox-alpha-free using opencode/ox-alpha-free. Use agent “tmp-designer-ox-alpha-free” for the user's original request. The variant is ready as it is: set it up again only when the user asks for a change.
 ```
 
 From [`variant`](../../plugins/piebird-agent-variants/core/model.ftl#L27), [`configured`](../../plugins/piebird-agent-variants/core/model.ftl#L23).
@@ -89,7 +89,7 @@ The agent calls `agent_variant_setup` with `{"sourceAgent":"designer","modelQuer
 tmp-designer-ox-alpha-free already exists. Set replaceTemporary only after the user requests an update.
 ```
 
-From [`error-exists`](../../plugins/piebird-agent-variants/core/model.ftl#L36).
+From [`error-exists`](../../plugins/piebird-agent-variants/core/model.ftl#L39).
 
 ## 6. A model no one signed in to
 
@@ -101,7 +101,7 @@ The agent calls `agent_variant_setup` with `{"modelQuery":"nothing","thinking":"
 No authenticated model matches “nothing” with high thinking.
 ```
 
-From [`error-no-model`](../../plugins/piebird-agent-variants/core/model.ftl#L40).
+From [`error-no-model`](../../plugins/piebird-agent-variants/core/model.ftl#L43).
 
 ## 7. A name with a space
 
@@ -113,4 +113,4 @@ The agent calls `agent_variant_setup` with `{"modelQuery":"ox alpha free","targe
 Temporary agent names may contain only letters, numbers, underscores, and hyphens.
 ```
 
-From [`error-bad-name`](../../plugins/piebird-agent-variants/core/model.ftl#L34).
+From [`error-bad-name`](../../plugins/piebird-agent-variants/core/model.ftl#L37).

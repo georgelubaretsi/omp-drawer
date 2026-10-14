@@ -2,7 +2,6 @@
 // the same session continued: omp sets up the look in Tern by itself and the turn redraws.
 import type { Scenario } from "../../tools/demo/record";
 import { writeProject } from "../../tools/demo/project";
-import { linkPlugin } from "../../tools/demo/sandbox";
 import { shopApi } from "../shop-api";
 
 export default {
@@ -22,7 +21,7 @@ export default {
 		await d.wait(300);
 		await d.key("ctrl+c");
 		await d.wait(1500);
-		await linkPlugin(d.sandbox, "piebird-tern-ghostty-style");
+		await d.sandbox.installPlugin("piebird-tern-ghostty-style");
 		d.caption("Install the plugin, continue the session", "omp plugin install piebird-tern-ghostty-style@piebird");
 		await d.wait(2500);
 		// A continued session's composer shows its title, not omp's greeting: wait for the turn instead.

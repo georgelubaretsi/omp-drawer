@@ -111,10 +111,15 @@ default follows the shared one.
 The shared choices live in two files of one format, a section per plugin keyed by its name:
 `~/.agents/piebird/settings.json`, the person's, and `<project>/.agents/piebird/settings.json`,
 the repo's, committed. `kit/core/settings.ts` resolves each setting, lowest first: the plugin's
-default, the project's file, the person's file, the agent's own screen. A repo can't override the
-person, and a value a file holds that isn't declared, is a secret, or isn't one of the choices is
+default, the project's file, the person's file, the agent's own screen. A choice an agent keeps in
+the project (omp's `.omp/plugin-overrides.json`) ranks with the project's file, over it; Claude
+Code reads plugin options from the person's settings only. A repo can't override the person,
+and a value a file holds that isn't declared, is a secret, or isn't one of the choices is
 reported and skipped. A path is relative to the folder holding `.agents/` unless absolute. The
-build writes `schemas/settings.schema.json` from every plugin's declarations, for editors.
+build writes `schemas/settings.schema.json` from every plugin's declarations, for editors. The
+settings page (`<program> settings`, and the desktop installer's) writes the person's file: each
+setting is "Automatic" (the project's choice, else the default) or the value picked, the
+default's too.
 
 ### Operations
 
@@ -130,9 +135,12 @@ What a plugin can do for an agent or for another plugin is declared once, in
 
 Text the model reads isn't in this file: `title`, `description` and `examples` anywhere in a
 schema are refused. It lives in `core/model.ftl`: a tool's message has the operation's id, with
-one attribute per argument saying what it is for, and an error's message is `error-<id>`. The
-build refuses a schema Ajv can't compile, two tools with one name, and a tool, argument or error
-model.ftl doesn't describe. Within a version, changes only add; the build doesn't check that.
+one attribute per argument saying what it is for, and an error's message is `error-<id>`. A
+plugin with tools also words what a tool says when it can't answer as its operation says:
+`error-crashed` (`{ $cause }`) when its code fails, `error-arguments` (`{ $problem }`) when its
+arguments don't fit its schema. The build refuses a schema Ajv can't compile, two tools with one
+name, and a tool, argument or error model.ftl doesn't describe, or a plugin with tools without
+those two. Within a version, changes only add; the build doesn't check that.
 
 ### plugin.json
 

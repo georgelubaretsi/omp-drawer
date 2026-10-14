@@ -1,4 +1,4 @@
-// `bun tools/demo/vm/record.ts <demo> [--keep]` (from the workspace: `just demo-vm <demo>`): runs a
+// `bun tools/demo/vm/record.ts <demo> [--keep]` (from the workspace: `just demo-desktop <demo>`): runs a
 // desktop demo, demos/<demo>/scenario.ts, in a throwaway macOS virtual machine and writes demo.mp4
 // and demo.webp next to it. It needs tart (`TART` names it when it isn't on PATH) and the
 // scenario's base image pulled. Nothing happens on this computer's own screen; `--keep` leaves
@@ -48,7 +48,7 @@ async function record(name: string, keep: boolean): Promise<void> {
 	const mod: unknown = await import(join(folder, "scenario.ts"));
 	const scenario: unknown = mod && typeof mod === "object" ? Reflect.get(mod, "default") : undefined;
 	if (!isScenario(scenario)) throw new Error(`${folder}/scenario.ts has no default VmScenario export`);
-	const guest = await Guest.start({ base: scenario.base, name: `piebird-demo-${name}` });
+	const guest = await Guest.start({ base: scenario.base, name: `piebird-demo-${name}`, vnc: true });
 	const frames = mkdtempSync(join(tmpdir(), "piebird-vm-frames-"));
 	let vnc: Vnc | undefined;
 	try {
@@ -61,6 +61,8 @@ async function record(name: string, keep: boolean): Promise<void> {
 			() => undefined,
 			(e: unknown) => e,
 		);
+		// What the screen showed when it failed, with DEMO_SHOTS set: failure.png.
+		if (failure) await demo.shot("failure");
 		const recording = await demo.stop();
 		if (failure) throw failure instanceof Error ? failure : new Error(JSON.stringify(failure));
 		await compose(recording, vnc.width / 2, { mp4: join(folder, "demo.mp4"), webp: join(folder, "demo.webp") });

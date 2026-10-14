@@ -1,4 +1,4 @@
-import { parseDocument } from "yaml";
+import { parseDocument } from "../vendor/yaml/index.js";
 import { model } from "../core/model.gen";
 import { VariantError } from "../core/request";
 

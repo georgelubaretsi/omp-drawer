@@ -7,7 +7,8 @@
 // notes repository, an absolute path): a project's settings are trusted as much as its code.
 import type { Io, Place } from "../kit/core/io";
 import type { ModelText } from "../kit/core/model";
-import { readSettings } from "../kit/core/settings";
+import type { AgentChoice } from "../kit/core/settings";
+import { agentChoices, readSettings } from "../kit/core/settings";
 import { model } from "./model.gen";
 import { declared } from "./settings.gen";
 
@@ -86,10 +87,9 @@ async function fromOmpFile(io: Io, dir: string): Promise<ThreadsFolder | undefin
 	}
 }
 
-/** The project's threads folder at `place`, given the agent's own choice, or undefined when none is named. */
-export async function threadsFolder(io: Io, place: Place, choice: unknown): Promise<ThreadsFolder | undefined> {
-	const agent = typeof choice === "string" ? { folder: choice } : {};
-	const { values } = await readSettings(io, place, { plugin: PLUGIN, declared, agent });
+/** The project's threads folder at `place`, given the agent's own choices, or undefined when none is named. */
+export async function threadsFolder(io: Io, place: Place, choice?: AgentChoice): Promise<ThreadsFolder | undefined> {
+	const { values } = await readSettings(io, place, { plugin: PLUGIN, declared, ...agentChoices("folder", choice) });
 	const setting = values.folder;
 	if (setting === undefined || trimmed(setting.value) === "") return fromOmpFile(io, place.project);
 	const base = setting.from === "user" ? place.home : place.project;

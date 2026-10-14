@@ -38,14 +38,17 @@ and this plugin adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- `tern_lua` failing in the plugin's own code tells the model so in the plugin's words
+  (`error-crashed` in `core/model.ftl`).
 - Renamed from `tern` to `piebird-tern-bridge`, one name for the folder, `plugin.json`,
   `package.json`, the catalog and the Tern plugin (formerly `omp-bridge`): install it as
   `piebird-tern-bridge@piebird`. The look moved to its own plugin, `piebird-tern-ghostty-style`.
 - Skill `tern`: common calls for listing the window's panes, splitting a pane and running a
-  command in it without taking focus, typing into a shell pane, closing a pane and naming a tab;
-  and two notes: `cx` and its parts are userdata that `pairs` can't list, and Luau here has no
-  `os.getenv`, so pane ids and paths go into the code. Before, a small model guessed at these
-  APIs and failed three calls in a row; with them it does the demo's tasks with no failed call.
+  command in it without taking focus, typing into a shell pane, opening a file in a new tab,
+  closing a pane and naming a tab; and two notes: `cx` and its parts are userdata that `pairs`
+  can't list, and Luau here has no `os.getenv`, so pane ids (numbers: yours read with
+  `echo $TERN_PANE` first) and paths go into the code. Before, a small model guessed at these APIs
+  and failed three calls in a row; with them it does the demo's tasks with no failed call.
 - Tern agents are any coding agent in a pane, omp unless the user names another such as Claude
   Code or Codex, in the rule `tern-agents` and the skill `tern`; the skill says how to start each
   (`command = "claude"`, `"codex"`) and how to read the reply of an agent other than omp.

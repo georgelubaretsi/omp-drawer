@@ -20,11 +20,11 @@ const MINUTE = 60_000;
 const HOME = "/home/ada";
 
 /** The parts with `io`, a fresh marks folder, and a clock the test moves. */
-async function program(io: Io, agent: Readonly<Record<string, string>> = {}) {
+async function program(io: Io) {
 	const clock = { now: Date.parse("2026-10-14T09:00:00Z") };
 	const marks = failureMarks(join(folder, String(made++)), () => clock.now);
 	const place = { home: HOME, project: "/plugin", plugin: "/plugin" };
-	const parts = await kagiParts(agent, { io, place, windows: false, marks });
+	const parts = await kagiParts({ io, place, windows: false, marks });
 	return { parts, clock };
 }
 
@@ -91,8 +91,11 @@ describe("Kagi first", () => {
 });
 
 describe("the other choices", () => {
-	test("Kagi only refuses web.run searches even after Kagi fails", async () => {
-		const { parts } = await program(goldenIo(), { search: "only" });
+	test("Kagi only, the person's choice, refuses web.run searches even after Kagi fails", async () => {
+		const files = {
+			[`${HOME}/.agents/piebird/settings.json`]: JSON.stringify({ "piebird-kagi-search": { search: "only" } }),
+		};
+		const { parts } = await program(goldenIo({ files }));
 		await search(parts, { sessionId: "s-1" }, NO_SESSION);
 		expect(await hook(parts, webRun("s-1"))).toEqual(refused("only"));
 	});

@@ -120,9 +120,8 @@ const write = { projectWriteApproved: true };
 describe("the tool's results", () => {
 	test("is blocked without project write approval, and asks before paid routes", async () => {
 		const { run } = load(await project());
-		expect(await run({ modelQuery: "ox alpha" })).toBe(
-			"Project write not approved. Check repository instructions and status before creating .omp agent configuration.",
-		);
+		// Blocked, it names the call to make once writing is allowed.
+		expect(await run({ modelQuery: "ox alpha" })).toContain("projectWriteApproved: true");
 		expect(await run({ modelQuery: "ox alpha", includePaidFallbacks: true, ...write })).toBe(
 			"Free/subscription routes available: opencode/ox-alpha-free. Explicit approval is required before configuring paid per-token routes:\nopenrouter/ox-alpha: input 1, output 2, cache read 0.1, cache write 0.2",
 		);
@@ -130,16 +129,18 @@ describe("the tool's results", () => {
 
 	test("takes a route signed in with OAuth as a subscription, without asking", async () => {
 		const { run } = load(await project(), {}, ["openrouter"]);
-		expect(await run({ sourceAgent: "designer", modelQuery: "ox alpha", includePaidFallbacks: true, ...write })).toBe(
-			"Configured temporary designer variant tmp-designer-ox-alpha using opencode/ox-alpha-free → openrouter/ox-alpha. Use agent “tmp-designer-ox-alpha” for the user's original request.",
+		expect(
+			await run({ sourceAgent: "designer", modelQuery: "ox alpha", includePaidFallbacks: true, ...write }),
+		).toStartWith(
+			"Configured temporary designer variant tmp-designer-ox-alpha using opencode/ox-alpha-free → openrouter/ox-alpha. Use agent “tmp-designer-ox-alpha”",
 		);
 	});
 
 	test("configures a variant, says which agent to use, and lists it at the next session start", async () => {
 		const root = await project();
 		const { run, failure, notices } = load(root);
-		expect(await run({ sourceAgent: "designer", modelQuery: "ox alpha free", ...write })).toBe(
-			"Configured temporary designer variant tmp-designer-ox-alpha-free using opencode/ox-alpha-free. Use agent “tmp-designer-ox-alpha-free” for the user's original request.",
+		expect(await run({ sourceAgent: "designer", modelQuery: "ox alpha free", ...write })).toStartWith(
+			"Configured temporary designer variant tmp-designer-ox-alpha-free using opencode/ox-alpha-free. Use agent “tmp-designer-ox-alpha-free”",
 		);
 		const agent = await readFile(join(root, ".omp", "agents", "tmp-designer-ox-alpha-free.md"), "utf8");
 		expect(agent).toContain("description: Temporary designer variant for ox alpha free");
@@ -191,9 +192,7 @@ describe("the tool's errors", () => {
 			`${plain} already exists and is not a temporary agent variant.`,
 		);
 		const dirty = load(root, { status: " M .omp/config.yml" });
-		expect(await dirty.failure({ modelQuery: "ox alpha free", ...write })).toBe(
-			"Target OMP configuration has uncommitted changes; refusing to overwrite user work.",
-		);
+		expect(await dirty.failure({ modelQuery: "ox alpha free", ...write })).toContain("uncommitted changes");
 		expect(await load(root, { fails: "status" }).failure({ modelQuery: "ox alpha free", ...write })).toBe(
 			"Couldn't check the target OMP configuration for uncommitted changes (git status: fatal: index file corrupt); refusing to write.",
 		);

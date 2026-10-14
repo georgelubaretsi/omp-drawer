@@ -39,6 +39,22 @@ export interface Recording {
 	events: DemoEvent[];
 	prompts: Prompted[];
 }
+
+/** The person answering a question an agent asks mid-turn (Demo.prompt). */
+export interface Answer {
+	/** Text the window shows once the question is up. */
+	when: string;
+	/** The keys pressed, each with the label the video shows. */
+	keys: [string, string][];
+	/** Text the question shows while it is still open: the keys are pressed again while it shows. */
+	open?: string;
+	/**
+	 * The agent may ask in its reply instead, ending its turn: for captions that fit both. Without
+	 * it, a turn that never showed `when` fails the run, since the captions tell of the question.
+	 */
+	optional?: boolean;
+}
+
 export class Demo {
 	readonly window: TernWindow;
 	readonly sandbox: Sandbox;
@@ -127,6 +143,21 @@ export class Demo {
 	}
 
 	/**
+	 * Waits until omp has shown no "Working" for `quietMs`: a turn it starts by itself, such as
+	 * relaying a background job's result, is over. Throws after `timeoutMs`.
+	 */
+	async idle(quietMs = 3000, timeoutMs = 180_000): Promise<void> {
+		const until = performance.now() + timeoutMs;
+		let quietSince = performance.now();
+		while (performance.now() < until) {
+			if ((await this.window.text()).includes("Working")) quietSince = performance.now();
+			else if (performance.now() - quietSince >= quietMs) return;
+			await Bun.sleep(250);
+		}
+		throw new Error(`omp was still working after ${timeoutMs / 1000} s`);
+	}
+
+	/**
 	 * Types `command` (omp, with any flags) in the focused shell and waits for omp's composer, or
 	 * until the window shows `ready` (a continued session's composer shows its title instead).
 	 */
@@ -158,9 +189,15 @@ export class Demo {
 
 	/**
 	 * Sends `text` to the agent last started, in its own pane even when an answer moved the focus,
-	 * and waits until the answer is done; the wait plays `fast` times faster in the video.
+	 * and waits until the answer is done; the wait plays `fast` times faster in the video. `answer`
+	 * is the person answering a question the agent asks mid-turn: once the window shows `when`, the
+	 * keys are pressed, each shown with its label, and pressed again while the window still shows
+	 * `open` (an ask of several questions has a page each, then a review to submit).
 	 */
-	async prompt(text: string, { fast = 3, timeoutMs = 180_000 } = {}): Promise<void> {
+	async prompt(
+		text: string,
+		{ fast = 3, timeoutMs = 180_000, answer }: { fast?: number; timeoutMs?: number; answer?: Answer } = {},
+	): Promise<void> {
 		const agent = this.#agent;
 		if (this.#block !== undefined) await this.window.cli("focus", this.#block);
 		await this.type(text);
@@ -169,24 +206,43 @@ export class Demo {
 		const sent = performance.now();
 		await Bun.sleep(1200);
 		this.speed(fast);
-		try {
-			while (performance.now() < sent + timeoutMs) {
-				const turn = await turnFor(agent, journalsOf(this.sandbox, agent), text);
-				if (!turn) {
-					await Bun.sleep(500);
-					continue;
-				}
-				const seconds = Math.round((performance.now() - sent) / 1000);
-				this.#prompts.push({ agent, prompt: text, seconds, ...turn });
-				if (turn.end !== "stop") throw new Error(`${agent}'s answer to "${text}" ended with ${turn.end}`);
-				// The window draws the answer's last words a moment after the agent writes them down.
-				await Bun.sleep(800);
-				return;
-			}
-		} finally {
-			this.speed(1);
+		const { turn, answered } = await this.#turn(text, { sent, timeoutMs, fast, answer }).finally(() => this.speed(1));
+		const seconds = Math.round((performance.now() - sent) / 1000);
+		this.#prompts.push({ agent, prompt: text, seconds, ...turn });
+		if (turn.end !== "stop") throw new Error(`${agent}'s answer to "${text}" ended with ${turn.end}`);
+		if (!answered && !answer?.optional)
+			throw new Error(`${agent} answered "${text}" without asking (no "${answer?.when}" showed)`);
+		// The window draws the answer's last words a moment after the agent writes them down.
+		await Bun.sleep(800);
+	}
+
+	/** Waits for the agent's turn answering `text`, answering its question on the way; throws after the timeout. */
+	async #turn(
+		text: string,
+		o: { sent: number; timeoutMs: number; fast: number; answer: Answer | undefined },
+	): Promise<{ turn: Turn; answered: boolean }> {
+		let answered = o.answer === undefined;
+		while (performance.now() < o.sent + o.timeoutMs) {
+			if (!answered && o.answer) answered = await this.#answer(o.answer, o.fast);
+			const turn = await turnFor(this.#agent, journalsOf(this.sandbox, this.#agent), text);
+			if (turn) return { turn, answered };
+			await Bun.sleep(500);
 		}
-		throw new Error(`${agent} didn't finish answering "${text}"`);
+		throw new Error(`${this.#agent} didn't finish answering "${text}"`);
+	}
+
+	/** Answers `answer`'s question once the window shows it, at full speed; whether it did. */
+	async #answer(answer: Answer, fast: number): Promise<boolean> {
+		if (!(await this.window.text()).includes(answer.when)) return false;
+		this.speed(1);
+		await Bun.sleep(2500);
+		for (let page = 0; page < 6; page++) {
+			for (const [chord, label] of answer.keys) await this.key(chord, label);
+			await Bun.sleep(1500);
+			if (answer.open === undefined || !(await this.window.text()).includes(answer.open)) break;
+		}
+		this.speed(fast);
+		return true;
 	}
 
 	/** The rectangle of the first element `selector` matches, in logical pixels. */
