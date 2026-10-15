@@ -6,7 +6,7 @@
 // plugin carries it, with SHA256SUMS. Nothing here signs. The tag installer/v<version> (the
 // version in package.json) builds the desktop installers instead (tools/installer.ts).
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { releaseInstallers } from "./installer";
 import { buildPlugin, bunEntry, catalogEntries, TARGETS, type WithProgram } from "./native";
 
@@ -56,13 +56,15 @@ function spawn(argv: string[], cwd?: string): string {
 
 /** The archives of `native/` (built for `names`) into `out`, with their SHA256SUMS. */
 export async function pack(native: string, tag: Tag, names: string[], out: string): Promise<void> {
+	// tar runs in native/'s folder, so the archives' folder is named whole.
+	const dest = resolve(out);
 	const archives = new Map<string, Uint8Array>();
 	for (const [platform, files] of platformFiles(names)) {
 		const archive = `${tag.plugin}-${tag.version}-${platform}.tar.gz`;
-		spawn(["tar", "-czf", join(out, archive), ...files.map(f => `native/${f}`)], dirname(native));
-		archives.set(archive, await readFile(join(out, archive)));
+		spawn(["tar", "-czf", join(dest, archive), ...files.map(f => `native/${f}`)], dirname(native));
+		archives.set(archive, await readFile(join(dest, archive)));
 	}
-	await writeFile(join(out, "SHA256SUMS"), sha256sums(archives));
+	await writeFile(join(dest, "SHA256SUMS"), sha256sums(archives));
 }
 
 /** The plugin the tag releases, with its programs' names; refused unless the versions agree. */
@@ -98,7 +100,9 @@ async function programs(tag: Tag, out: string): Promise<void> {
 
 async function main(argv: string[]): Promise<number> {
 	const at = argv.indexOf("--out");
-	const out = at >= 0 ? argv[at + 1] : undefined;
+	const given = at >= 0 ? argv[at + 1] : undefined;
+	// Named whole: the build and tar run in other folders than this one.
+	const out = given ? resolve(given) : undefined;
 	const tagArg = argv.find((a, i) => !a.startsWith("--") && i !== at + 1);
 	if (!out || !tagArg) throw new Error("usage: bun tools/release.ts <plugin>/v<version> --out <dir>");
 	const tag = parseTag(tagArg);

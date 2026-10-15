@@ -9,7 +9,7 @@
 // The release workflow builds every platform's with `bun tools/release.ts installer/v<version>`.
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { packPayload } from "../installer/core/payload";
 import { NATIVE_DIR } from "./build/native";
 import { makeApp, makeDmg, signApp } from "./installer/mac";
@@ -154,7 +154,7 @@ async function main(argv: readonly string[]): Promise<number> {
 	}
 	const made = await buildInstaller(
 		platform,
-		option(argv, "--out") ?? join(ROOT, "dist", "installer"),
+		resolve(option(argv, "--out") ?? join(ROOT, "dist", "installer")),
 		argv.includes("--release"),
 	);
 	console.log(`built: ${made}`);

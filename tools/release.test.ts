@@ -49,6 +49,23 @@ describe("the release's archives", () => {
 		expect(verify.exitCode).toBe(0);
 	});
 
+	test("land in an output folder named relative to where the release runs, as the workflow names it", async () => {
+		const root = await tree(["omp"]);
+		for (const b of ["macos-arm64/p", "macos-x64/p", "linux-arm64/p", "linux-x64/p", "p.exe", "p"])
+			await put(root, `build/native/${b}`, `${b}\n`);
+		await put(root, "out/.keep", "");
+		const here = process.cwd();
+		process.chdir(root);
+		try {
+			await pack(join(root, "build", "native"), { plugin: "demo", version: "1.0.0" }, ["p"], "out");
+		} finally {
+			process.chdir(here);
+		}
+		const verify = Bun.spawnSync(["shasum", "-a", "256", "-c", "SHA256SUMS"], { cwd: join(root, "out") });
+		expect(verify.stdout.toString().trim().split("\n")).toHaveLength(5);
+		expect(verify.exitCode).toBe(0);
+	});
+
 	test("checksums are sha256sum's lines", () => {
 		expect(sha256sums(new Map([["a", new TextEncoder().encode("abc")]]))).toBe(
 			"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad  a\n",

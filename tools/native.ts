@@ -10,7 +10,7 @@
 // installed. Needs Go and Bun: the dev shell's.
 import { existsSync } from "node:fs";
 import { chmod, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { NATIVE_DIR, programDir } from "./build/native";
 import { type CatalogEntry, validateCatalog } from "./build/schemas";
 
@@ -233,7 +233,9 @@ async function main(argv: string[]): Promise<number> {
 	const release = argv.includes("--release");
 	const args = argv.filter(a => a !== "--release");
 	const at = args.indexOf("--out");
-	const out = at >= 0 ? args[at + 1] : undefined;
+	const given = at >= 0 ? args[at + 1] : undefined;
+	// Named whole: Go and Bun build from the plugins' folder, whatever folder this runs in.
+	const out = given ? resolve(given) : undefined;
 	const named = at >= 0 ? args.filter((_, i) => i !== at && i !== at + 1) : args;
 	if (at >= 0 && !out) throw new Error("--out needs a folder");
 	for (const plugin of withPrograms(await catalogEntries(), named)) {
