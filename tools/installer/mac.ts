@@ -1,7 +1,6 @@
 // The macOS installer's packaging: the program as an app with no Dock icon (its window is the
-// browser page), signed with the JIT entitlement Bun needs, inside a disk image; for a release,
-// signed with the Developer ID and the image notarized and stapled.
-import { chmodSync, cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+// browser page), signed with the JIT entitlement Bun needs, inside a disk image.
+import { chmodSync, cpSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 export const APP_NAME = "Install piebird";
@@ -64,6 +63,13 @@ export function signApp(app: string, identity: string, entitlements: string): vo
 	spawn(["codesign", "--verify", "--strict", app]);
 }
 
+/** The bytes of every file under `dir`, as their lengths count them. */
+function treeBytes(dir: string): number {
+	return readdirSync(dir, { recursive: true, encoding: "utf8" })
+		.map(name => statSync(join(dir, name), { throwIfNoEntry: false }))
+		.reduce((sum, stat) => sum + (stat?.isFile() ? stat.size : 0), 0);
+}
+
 /** A compressed disk image holding only the app: the installer runs from it, never copied anywhere. */
 export function makeDmg(app: string, out: string): void {
 	const staging = `${out}.staging`;
@@ -71,20 +77,25 @@ export function makeDmg(app: string, out: string): void {
 	mkdirSync(staging, { recursive: true });
 	spawn(["ditto", app, join(staging, `${APP_NAME}.app`)]);
 	rmSync(out, { force: true });
+	// hdiutil's own estimate from -srcfolder now and then falls short ("No space left on device"),
+	// so the image gets the folder's size with room for the file system.
+	const megabytes = Math.ceil((treeBytes(staging) * 1.25) / 1048576) + 16;
 	try {
-		spawn(["hdiutil", "create", "-volname", APP_NAME, "-srcfolder", staging, "-format", "UDZO", "-ov", out]);
+		spawn([
+			"hdiutil",
+			"create",
+			"-volname",
+			APP_NAME,
+			"-srcfolder",
+			staging,
+			"-size",
+			`${megabytes}m`,
+			"-format",
+			"UDZO",
+			"-ov",
+			out,
+		]);
 	} finally {
 		rmSync(staging, { recursive: true, force: true });
 	}
-}
-
-/** Signs, notarizes and staples the disk image, so it opens without a warning even offline. */
-export function notarizeDmg(dmg: string, identity: string, credentials: string[]): void {
-	spawn(["codesign", "--force", "--timestamp", "--sign", identity, dmg]);
-	const answer: unknown = JSON.parse(
-		spawn(["xcrun", "notarytool", "submit", dmg, ...credentials, "--wait", "--output-format", "json"]),
-	);
-	const status = typeof answer === "object" && answer !== null && "status" in answer ? answer.status : undefined;
-	if (status !== "Accepted") throw new Error(`notarizing ${dmg}: ${JSON.stringify(answer)}`);
-	spawn(["xcrun", "stapler", "staple", dmg]);
 }

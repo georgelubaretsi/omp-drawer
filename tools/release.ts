@@ -1,19 +1,14 @@
 #!/usr/bin/env bun
-// `bun tools/release.ts <plugin>/v<version> --out <dir>`: what the release workflow publishes for
-// a plugin's tag. The tag's version must be the plugin's (plugin.json). Its native programs are
-// built for every platform as a release (tools/native.ts), each macOS build is notarized with
-// the App Store Connect key in APPLE_NOTARY_KEY (a .p8 file), APPLE_NOTARY_KEY_ID and
-// APPLE_NOTARY_ISSUER, each Windows build is signed with the code-signing certificate in
-// WINDOWS_CERTIFICATE (a .pfx file, its password in WINDOWS_CERTIFICATE_PASSWORD) when there is
-// one, and the builds are packed one archive per platform, <plugin>-<version>-<platform>.tar.gz
-// holding native/ as the plugin carries it, with SHA256SUMS. The tag installer/v<version> (the
-// version in package.json) releases the desktop installers instead (tools/installer.ts).
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+// `bun tools/release.ts <plugin>/v<version> --out <dir>`: what the release workflow puts in a
+// plugin's draft release. The tag's version must be the plugin's (plugin.json). Its native
+// programs are built for every platform as a release (tools/native.ts), unsigned (macOS's ad hoc),
+// and packed one archive per platform, <plugin>-<version>-<platform>.tar.gz holding native/ as the
+// plugin carries it, with SHA256SUMS. Nothing here signs. The tag installer/v<version> (the
+// version in package.json) builds the desktop installers instead (tools/installer.ts).
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import { releaseInstallers } from "./installer";
 import { buildPlugin, bunEntry, catalogEntries, TARGETS, type WithProgram } from "./native";
-import { notaryCredentials, spawn } from "./signing";
 
 const ROOT = join(import.meta.dir, "..");
 
@@ -52,26 +47,11 @@ export function sha256sums(files: Map<string, Uint8Array>): string {
 		.join("");
 }
 
-/** Notarizes each macOS build: Apple scans it and records it, so Gatekeeper lets it run. */
-async function notarize(native: string, names: string[]): Promise<void> {
-	const credentials = notaryCredentials();
-	const work = await mkdtemp(join(tmpdir(), "notarize-"));
-	try {
-		for (const t of TARGETS.filter(target => target.goos === "darwin")) {
-			for (const name of names) {
-				const zip = join(work, `${basename(dirname(t.path(name)))}-${name}.zip`);
-				spawn(["ditto", "-c", "-k", "--keepParent", join(native, t.path(name)), zip]);
-				const answer: unknown = JSON.parse(
-					spawn(["xcrun", "notarytool", "submit", zip, ...credentials, "--wait", "--output-format", "json"]),
-				);
-				const status =
-					typeof answer === "object" && answer !== null && "status" in answer ? answer.status : undefined;
-				if (status !== "Accepted") throw new Error(`notarizing ${t.path(name)}: ${JSON.stringify(answer)}`);
-			}
-		}
-	} finally {
-		await rm(work, { recursive: true, force: true });
-	}
+/** Runs a command and returns its output; throws with what it said when it fails. */
+function spawn(argv: string[], cwd?: string): string {
+	const run = Bun.spawnSync(argv, { cwd, stdout: "pipe", stderr: "pipe" });
+	if (run.exitCode !== 0) throw new Error(`${argv.join(" ")} failed:\n${run.stderr.toString().trim()}`);
+	return run.stdout.toString();
 }
 
 /** The archives of `native/` (built for `names`) into `out`, with their SHA256SUMS. */
@@ -111,9 +91,7 @@ async function programs(tag: Tag, out: string): Promise<void> {
 	const { plugin, names } = await released(tag);
 	const native = join(out, "build", "native");
 	await mkdir(out, { recursive: true });
-	// buildPlugin signs the Windows builds of a release; macOS's are notarized here.
 	await buildPlugin(plugin, native, true);
-	await notarize(native, names);
 	await pack(native, tag, names, out);
 	await rm(join(out, "build"), { recursive: true, force: true });
 }

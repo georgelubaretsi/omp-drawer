@@ -61,9 +61,10 @@ flowchart LR
 
 ## Builds
 
-The native programs are built from this repository's source by its release workflow, macOS
-builds signed and notarized; nothing is downloaded at run time. A program is installed, updated
-and removed with its plugin.
+The native programs are built from this repository's source by its release workflow, which
+attests their build provenance and holds no secrets; a release is signed before it is published
+(docs/manifests.md, "Releases"). Nothing is downloaded at run time. A program is installed,
+updated and removed with its plugin.
 
 The desktop installer (docs/installer.md) carries the plugins it installs, built the same way;
 it downloads nothing. It writes into the agents' own settings only what their own commands
@@ -77,4 +78,3 @@ the same way as the sign-in page. It doesn't pre-trust Codex hooks.
   Secret Service or the file, run code as the Bun program, and drive the agent itself.
 - `KAGI_SESSION_TOKEN` set on purpose: the vault uses it instead of the stored session.
 - What the agent does with what a tool returns: search results and pages are untrusted text.
-- Windows builds are unsigned until the code-signing certificate arrives.

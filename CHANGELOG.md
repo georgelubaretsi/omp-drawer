@@ -58,8 +58,7 @@ change in a new month moves them into a section for the month they were last cha
   vaults' sign-in page is, refusing other host names.
 - `docs/security.md`: what the plugins protect when they run, who holds a secret (only a
   service's vault, never plugin code in the agent or the Bun program), the vault's guards, where
-  the session is kept on each system, and what is out of scope. The release workflow keeps its
-  signing secrets in a `release` environment, limited to the release tags.
+  the session is kept on each system, and what is out of scope.
 - This changelog, for the repository's own tooling, catalog, documentation and CI, with a section
   per month. `bun tools/changelog-cut.ts <file>...` closes a month: once it is over, the entries
   the last commit has under Unreleased move into `## [YYYY.MM] - YYYY-MM-DD`, dated the month's
@@ -211,10 +210,10 @@ change in a new month moves them into a section for the month they were last cha
   where it runs, and signs the macOS builds again on a Mac (ad hoc, or with
   `PIEBIRD_CODESIGN_IDENTITY`). `--release` refuses a build linking a library outside the
   system's, as programs from a Bun that isn't Bun's official build do.
-- Releases: pushing `<plugin>/v<version>` publishes the plugin's native programs as a GitHub
-  release (`.github/workflows/release.yml`, `tools/release.ts`): built on a Mac with Bun's
-  official build, the macOS builds signed with the Developer ID and notarized, the Windows builds
-  signed once the code-signing certificate is set up, one archive per platform with `SHA256SUMS`.
+- Releases: pushing `<plugin>/v<version>` builds the plugin's native programs into a draft
+  GitHub release (`.github/workflows/release.yml`, `tools/release.ts`): built on a Mac with Bun's
+  official build, unsigned, with build provenance attestations, one archive per platform with
+  `SHA256SUMS`. The workflow holds no secrets; a release is signed before it is published.
 - Supply chain: Bun installs a version only once it has been public for 14 days
   (`bunfig.toml`; omp's packages exempt, as they track the harness), no dependency's install
   scripts run (`"trustedDependencies": []`), every dependency is pinned exactly so security

@@ -241,21 +241,20 @@ own name (`native/<platform>/<name>`, `native/<name>.exe`, the starter `native/<
 `tsconfig.json` or `package.json` from the folder it runs in, so a cloned repo can't change what
 it does. On a Mac the build signs the macOS builds again: Bun's signature of a build for the
 other architecture is invalid, and macOS kills such a program at launch. They are signed ad hoc,
-or with the Developer ID in `PIEBIRD_CODESIGN_IDENTITY` when it is set (Go's builds too, for
-notarization), hardened, the Bun builds with `tools/bun.entitlements` (`allow-jit`): without
-it the hardened runtime keeps Bun's JavaScript engine from compiling, and a program runs about
-8 times slower. `bun tools/native.ts --release` refuses a build for this system that links a
-library outside the system's own, as a Bun that isn't Bun's official build does (the dev
-shell's links Nix's ICU), and refuses to build macOS programs anywhere but on a Mac.
+or with the Developer ID in `PIEBIRD_CODESIGN_IDENTITY` when it is set (Go's builds too),
+hardened, the Bun builds with `tools/bun.entitlements` (`allow-jit`): without it the hardened
+runtime keeps Bun's JavaScript engine from compiling, and a program runs about 8 times slower.
+`bun tools/native.ts --release` signs ad hoc whatever `PIEBIRD_CODESIGN_IDENTITY` says, refuses a
+build for this system that links a library outside the system's own, as a Bun that isn't Bun's
+official build does (the dev shell's links Nix's ICU), and refuses to build macOS programs
+anywhere but on a Mac.
 
 ### Releases
 
 Pushing a plugin's tag, `<plugin>/v<version>` with the version in its `plugin.json`, runs
 `.github/workflows/release.yml`: on a Mac, with Bun's official build, `bun tools/release.ts`
-builds the plugin's programs as a release, signs the macOS builds with the Developer ID and has
-Apple notarize them, signs the Windows builds when the repository variable `WINDOWS_SIGNING` is
-`on` (it waits for the code-signing certificate; until then they are unsigned), and packs one
-archive per platform, `<plugin>-<version>-<platform>.tar.gz` holding `native/` as the plugin
-carries it, with `SHA256SUMS`. The workflow publishes them as the tag's GitHub release. Its
-signing secrets live in the `release` environment, limited to the release tags, so a workflow
-edited on a branch can't read them; the workflow's header lists them.
+builds the plugin's programs as a release, unsigned (macOS's ad hoc), and packs one archive per
+platform, `<plugin>-<version>-<platform>.tar.gz` holding `native/` as the plugin carries it, with
+`SHA256SUMS`. The workflow attests the build provenance of these unsigned files and puts them in
+a draft release of the tag. It holds no secrets; a release is signed before it is published,
+which changes its files' bytes, so the attestations stay with the unsigned builds.

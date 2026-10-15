@@ -4,8 +4,7 @@
 // macos-x64 as a disk image holding "Install piebird.app", windows-x64 as one .exe. It carries every
 // catalog plugin with its native programs for that platform, which `bun tools/native.ts` builds
 // first. Ad hoc signed, or with PIEBIRD_CODESIGN_IDENTITY; `--release` also refuses a Bun that isn't
-// Bun's official build and notarizes the image (APPLE_NOTARY_KEY, APPLE_NOTARY_KEY_ID,
-// APPLE_NOTARY_ISSUER), and signs the Windows program when WINDOWS_CERTIFICATE is set.
+// Bun's official build.
 // `--payload <file>` writes only the plugins it would carry, for `bun installer/main.ts --payload`.
 // The release workflow builds every platform's with `bun tools/release.ts installer/v<version>`.
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -13,7 +12,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { packPayload } from "../installer/core/payload";
 import { NATIVE_DIR } from "./build/native";
-import { makeApp, makeDmg, notarizeDmg, signApp } from "./installer/mac";
+import { makeApp, makeDmg, signApp } from "./installer/mac";
 import { missingNatives, PLATFORMS, type Platform, payloadFiles } from "./installer/payload";
 import {
 	BUN_ENTITLEMENTS,
@@ -25,7 +24,6 @@ import {
 	type Target,
 	withPrograms,
 } from "./native";
-import { notaryCredentials, signWindowsFile } from "./signing";
 
 const ROOT = join(import.meta.dir, "..");
 
@@ -68,8 +66,8 @@ function compile(platform: Platform, payload: Uint8Array, work: string): string 
 }
 
 async function mac(program: string, platform: Platform, out: string, release: boolean): Promise<string> {
-	const identity = process.env.PIEBIRD_CODESIGN_IDENTITY;
-	if (release && !identity) throw new Error("a release is signed with PIEBIRD_CODESIGN_IDENTITY");
+	// A release is built unsigned: ad hoc, whatever PIEBIRD_CODESIGN_IDENTITY says.
+	const identity = release ? undefined : process.env.PIEBIRD_CODESIGN_IDENTITY;
 	if (release && platform === hostPlatform()) {
 		const problems = await linkProblems([program]);
 		if (problems.length > 0) throw new Error(`not a release build:\n${problems.join("\n")}`);
@@ -78,15 +76,12 @@ async function mac(program: string, platform: Platform, out: string, release: bo
 	signApp(app, identity ?? "-", BUN_ENTITLEMENTS);
 	const dmg = join(out, `piebird-${installerVersion()}-${platform}.dmg`);
 	makeDmg(app, dmg);
-	if (release && identity) notarizeDmg(dmg, identity, notaryCredentials());
 	return dmg;
 }
 
-async function windows(program: string, out: string, release: boolean): Promise<string> {
+function windows(program: string, out: string): string {
 	const exe = join(out, `piebird-${installerVersion()}-windows-x64.exe`);
 	copyFileSync(program, exe);
-	if (!(await signWindowsFile(exe)) && release)
-		console.log("The Windows installer is unsigned: no WINDOWS_CERTIFICATE");
 	return exe;
 }
 
@@ -117,9 +112,7 @@ export async function buildInstaller(platform: Platform, out: string, release: b
 	const work = mkdtempSync(join(tmpdir(), "piebird-installer-"));
 	try {
 		const program = compile(platform, packPayload(files), work);
-		return platform === "windows-x64"
-			? await windows(program, out, release)
-			: await mac(program, platform, out, release);
+		return platform === "windows-x64" ? windows(program, out) : await mac(program, platform, out, release);
 	} finally {
 		rmSync(work, { recursive: true, force: true });
 	}

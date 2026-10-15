@@ -13,7 +13,6 @@ import { chmod, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path";
 import { NATIVE_DIR, programDir } from "./build/native";
 import { type CatalogEntry, validateCatalog } from "./build/schemas";
-import { signWindowsFile } from "./signing";
 
 const ROOT = join(import.meta.dir, "..");
 
@@ -164,14 +163,15 @@ export function sign(files: string[], identity: string, entitlements?: string): 
 /**
  * Signs the macOS builds on a Mac. Bun signs what it compiles, but its signature of a build for
  * another architecture is invalid and macOS kills that program at launch, so Bun's builds are
- * signed again: ad hoc, or with PIEBIRD_CODESIGN_IDENTITY when set, which signs Go's too.
+ * signed again: ad hoc, or with PIEBIRD_CODESIGN_IDENTITY when set, which signs Go's too. A
+ * release is always ad hoc: it is built unsigned (docs/manifests.md, "Releases").
  */
 function signMacBuilds(dir: string, { name, program, bun }: WithProgram, release: boolean): void {
 	if (process.platform !== "darwin") {
-		if (release) throw new Error("a release builds its macOS programs on a Mac, which signs them");
+		if (release) throw new Error("a release builds its macOS programs on a Mac, which signs them ad hoc");
 		return;
 	}
-	const identity = process.env.PIEBIRD_CODESIGN_IDENTITY;
+	const identity = release ? undefined : process.env.PIEBIRD_CODESIGN_IDENTITY;
 	if (bun) sign(macBuilds(dir, [name]), identity ?? "-", BUN_ENTITLEMENTS);
 	if (identity !== undefined && program !== undefined) sign(macBuilds(dir, [program]), identity);
 }
@@ -194,21 +194,6 @@ function compile(plugin: WithProgram, staging: string, version: string): Promise
 	return Promise.all([...go, ...js]);
 }
 
-/**
- * Signs the Windows builds of `names` in `dir` with the certificate in WINDOWS_CERTIFICATE; says
- * so when there is none. Every release signs them here: a plugin's archives and the installer's
- * payload alike.
- */
-async function signWindowsBuilds(dir: string, names: readonly string[]): Promise<void> {
-	const windows = TARGETS.filter(t => t.goos === "windows");
-	for (const exe of windows.flatMap(t => names.map(n => join(dir, t.path(n))))) {
-		if (!(await signWindowsFile(exe))) {
-			console.log("Windows builds unsigned: no WINDOWS_CERTIFICATE");
-			return;
-		}
-	}
-}
-
 /** Builds the programs of `plugin` into `dir` (replaced whole); the Go one gets its plugin.json version. */
 export async function buildPlugin(plugin: WithProgram, dir: string, release = false): Promise<void> {
 	const { name, program, bun } = plugin;
@@ -223,7 +208,6 @@ export async function buildPlugin(plugin: WithProgram, dir: string, release = fa
 	if (release) {
 		const problems = await linkProblems(ownBuilds(staging, names));
 		if (problems.length > 0) throw new Error(`not a release build:\n${problems.join("\n")}`);
-		await signWindowsBuilds(staging, names);
 	}
 	for (const n of names) {
 		await writeFile(join(staging, n), starter(n));

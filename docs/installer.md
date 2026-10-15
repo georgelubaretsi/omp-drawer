@@ -67,10 +67,9 @@ its own copy.
 
 macOS builds are made on a Mac. The app has no Dock icon (`LSUIElement`), and is signed with
 Bun's JIT entitlement (`tools/bun.entitlements`): ad hoc, or with `PIEBIRD_CODESIGN_IDENTITY`.
-`--release` refuses a Bun that isn't Bun's official build (the dev shell's links Nix's ICU) and
-notarizes and staples the disk image (`APPLE_NOTARY_KEY`, `APPLE_NOTARY_KEY_ID`,
-`APPLE_NOTARY_ISSUER`). The Windows program is cross-compiled without a console window and
-signed when `WINDOWS_CERTIFICATE` is set; until then SmartScreen warns whoever runs it.
+`--release` signs ad hoc whatever that variable says, and refuses a Bun that isn't Bun's official
+build (the dev shell's links Nix's ICU). The Windows program is cross-compiled without a console
+window. A release's installers are signed before they are published (manifests.md, "Releases").
 
 Run from source, for development:
 

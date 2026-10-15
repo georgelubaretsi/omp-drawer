@@ -1,14 +1,8 @@
-# The public piebird repository's releases: pushing a plugin's tag, <plugin>/v<version>, builds its
-# native programs with Bun's official build, signs and notarizes the macOS ones, signs the Windows
-# ones once there is a certificate, and publishes them as the tag's GitHub release
-# (tools/release.ts); the tag installer/v<version> publishes the desktop installers the same way
-# (docs/installer.md). Pushing the tag is the owner's approval to publish.
-# Secrets, in the `release` environment, which the owner limits to the release tags (*/v*) so a
-# workflow edited on a branch can't read them: MACOS_CERTIFICATE (the Developer ID Application
-# certificate, a base64 .p12), MACOS_CERTIFICATE_PASSWORD, MACOS_SIGNING_IDENTITY (its name,
-# "Developer ID Application: ..."), APPLE_NOTARY_KEY_P8 (an App Store Connect API key's .p8 text),
-# APPLE_NOTARY_KEY_ID, APPLE_NOTARY_ISSUER; for Windows, WINDOWS_CERTIFICATE (a base64 .pfx) and
-# WINDOWS_CERTIFICATE_PASSWORD, used only while the repository variable WINDOWS_SIGNING is "on".
+# The public piebird repository's release builds: pushing a plugin's tag, <plugin>/v<version>,
+# builds its native programs for every platform with Bun's official build (tools/release.ts),
+# unsigned, attests their build provenance and puts them in a draft release of the tag; the tag
+# installer/v<version> does the same for the desktop installers (docs/installer.md). It holds no
+# secrets; a release is signed before it is published.
 # In the private workspace this file sits at plugins/.github/workflows/, where GitHub never runs it.
 # Third-party actions are pinned by commit, with the release as a comment.
 name: release
@@ -22,9 +16,13 @@ permissions:
 
 jobs:
   build:
-    # macOS builds every platform (Go and Bun cross-compile) and is the one that can sign macOS's.
+    # macOS builds every platform (Go and Bun cross-compile) and signs macOS's Bun builds ad hoc,
+    # without which macOS kills them at launch.
     runs-on: macos-latest
-    environment: release
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     defaults:
       run:
         shell: bash
@@ -40,47 +38,20 @@ jobs:
           go-version-file: go.mod
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Signing keychain
+      - name: Build and pack
         env:
-          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-        run: |
-          keychain="$RUNNER_TEMP/signing.keychain-db"
-          password=$(openssl rand -hex 24)
-          security create-keychain -p "$password" "$keychain"
-          security set-keychain-settings -lut 21600 "$keychain"
-          security unlock-keychain -p "$password" "$keychain"
-          printf '%s' "$MACOS_CERTIFICATE" | base64 --decode >"$RUNNER_TEMP/certificate.p12"
-          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          rm "$RUNNER_TEMP/certificate.p12"
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain"
-          security list-keychains -d user -s "$keychain"
-      - name: Windows certificate
-        if: vars.WINDOWS_SIGNING == 'on'
-        env:
-          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
-        run: |
-          brew install osslsigncode
-          printf '%s' "$WINDOWS_CERTIFICATE" | base64 --decode >"$RUNNER_TEMP/windows.pfx"
-          echo "WINDOWS_CERTIFICATE=$RUNNER_TEMP/windows.pfx" >>"$GITHUB_ENV"
-      - name: Build, sign, notarize and pack
-        env:
-          PIEBIRD_CODESIGN_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
-          APPLE_NOTARY_KEY_P8: ${{ secrets.APPLE_NOTARY_KEY_P8 }}
-          APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
-          APPLE_NOTARY_ISSUER: ${{ secrets.APPLE_NOTARY_ISSUER }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
           TAG: ${{ github.ref_name }}
-        run: |
-          printf '%s' "$APPLE_NOTARY_KEY_P8" >"$RUNNER_TEMP/notary.p8"
-          APPLE_NOTARY_KEY="$RUNNER_TEMP/notary.p8" bun tools/release.ts "$TAG" --out dist
+        run: bun tools/release.ts "$TAG" --out dist
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/*
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release
           path: dist/
           if-no-files-found: error
 
-  publish:
+  draft:
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -90,11 +61,11 @@ jobs:
         with:
           name: release
           path: dist
-      - name: GitHub release
+      - name: Draft release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
         run: |
           notes="The native programs of ${TAG%/v*} ${TAG##*/v}: see its CHANGELOG.md."
           case $TAG in installer/*) notes="The piebird installer ${TAG##*/v}, for macOS and Windows: see docs/installer.md." ;; esac
-          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --title "$TAG" --notes "$notes"
+          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --draft --verify-tag --title "$TAG" --notes "$notes"
